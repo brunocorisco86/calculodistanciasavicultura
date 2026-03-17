@@ -23,7 +23,7 @@ class AviaryProcessor:
     def run(self):
         self.logger.info("Iniciando processamento de aviários...")
         resultados = []
-        
+
         try:
             with open(self.raw_csv_path, mode='r', encoding='utf-8-sig') as file:
                 sample = file.read(1024)
@@ -89,7 +89,7 @@ class AviaryProcessor:
             return
 
         os.makedirs(os.path.dirname(self.processed_csv_path), exist_ok=True)
-        
+
         fieldnames = resultados[0].keys()
         try:
             with open(self.processed_csv_path, mode='w', encoding='utf-8', newline='') as file:
