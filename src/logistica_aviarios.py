@@ -1,48 +1,84 @@
 import csv
-import requests
+import os
 import time
 import sys
-from functools import lru_cache
+import os
+from pathlib import Path
+from src.utils.logger import setup_logger
+from src.api_client import OSRMClient
+from src.report_generator import ReportGenerator
 
 # Configurações do Ponto de Partida (Abatedouro)
 ABATEDOURO_LAT = -24.330706428602536
 ABATEDOURO_LON = -53.85805796419288
 VELOCIDADE_MEDIA_KMH = 40.0
 
-# Endpoint Público do OSRM (Open Source Routing Machine)
-# Nota: OSRM usa o formato (longitude, latitude)
-OSRM_URL = "http://router.project-osrm.org/route/v1/driving/{lon_start},{lat_start};{lon_end},{lat_end}?overview=false"
+class AviaryProcessor:
+    def __init__(self, raw_csv_path, processed_csv_path, logger=None):
+        self.raw_csv_path = raw_csv_path
+        self.processed_csv_path = processed_csv_path
+        self.logger = logger or setup_logger("AviaryProcessor", log_file="src/utils/processamento.log")
+        self.api_client = OSRMClient(timeout=30, max_retries=3, logger=self.logger)
+        self.report_generator = ReportGenerator(logger=self.logger)
 
+    def run(self):
+        self.logger.info("Iniciando processamento de aviários...")
+        resultados = []
+        
+        try:
+            with open(self.raw_csv_path, mode='r', encoding='utf-8-sig') as file:
+                sample = file.read(1024)
+                file.seek(0)
+                dialect = csv.Sniffer().sniff(sample)
+                reader = csv.DictReader(file, dialect=dialect)
+                reader.fieldnames = [name.strip() for name in reader.fieldnames]
 
-@lru_cache(maxsize=None)
-def calcular_rota_real(lat_dest, lon_dest):
-    """
-    Consulta a API OSRM para obter a distância real via estradas.
-    Retorna a distância em km.
-    """
-    url = OSRM_URL.format(
-        lon_start=ABATEDOURO_LON,
-        lat_start=ABATEDOURO_LAT,
-        lon_end=lon_dest,
-        lat_end=lat_dest,
-    )
+                for row in reader:
+                    try:
+                        processed_row = self._process_row(row)
+                        if processed_row:
+                            resultados.append(processed_row)
+                    except Exception as e:
+                        self.logger.error(f"Erro ao processar linha {row.get('aviario')}: {e}")
 
-    try:
-        response = requests.get(url, timeout=30)
-        data = response.json()
+                    # Pequeno delay para evitar sobrecarga na API pública
+                    time.sleep(0.5)
 
-        if data.get("code") == "Ok":
-            # A distância retornada pelo OSRM é em metros
-            distancia_metros = data["routes"][0]["distance"]
-            return distancia_metros / 1000.0
-        else:
+            self._save_results(resultados)
+            self.logger.info(f"Processamento concluído. {len(resultados)} registros processados.")
+
+        except FileNotFoundError:
+            self.logger.error(f"Erro: Arquivo {self.raw_csv_path} não encontrado.")
+        except Exception as e:
+            self.logger.error(f"Ocorreu um erro inesperado: {e}")
+
+    def _process_row(self, row):
+        aviario = row['aviario'].strip()
+        nome = row['nome produtor'].strip()
+
+        try:
+            lat = float(row['latitude'].strip().replace(',', '.'))
+            lon = float(row['longitude'].strip().replace(',', '.'))
+        except ValueError as e:
+            self.logger.warning(f"Coordenadas inválidas para aviário {aviario}: {e}")
             return None
-    except Exception as e:
-        print(f"Erro ao consultar API: {e}")
-        return None
 
 
 def processar_aviarios(csv_path):
+    # Validação de segurança do caminho do arquivo (Prevenção de Path Traversal)
+    # Garante que o caminho esteja dentro do diretório do projeto usando realpath
+    # para resolver symlinks e commonpath para evitar prefix bypass.
+    try:
+        base_dir = os.path.realpath(os.path.dirname(os.path.dirname(__file__)))
+        target_path = os.path.realpath(csv_path)
+
+        if os.path.commonpath([base_dir]) != os.path.commonpath([base_dir, target_path]):
+            print(f"Erro de Segurança: O caminho {csv_path} está fora do diretório permitido.")
+            return []
+    except Exception as e:
+        print(f"Erro ao validar o caminho do arquivo: {e}")
+        return []
+
     print(f"{'='*60}")
     print(f"{'LOGÍSTICA DE APANHA - AVÍCOLA':^60}")
     print(f"{'='*60}")
@@ -55,64 +91,60 @@ def processar_aviarios(csv_path):
 
     try:
         # Usando utf-8-sig para remover automaticamente o BOM (\ufeff) se presente
-        with open(csv_path, mode="r", encoding="utf-8-sig") as file:
+        with open(target_path, mode='r', encoding='utf-8-sig') as file:
             # Detectando se o delimitador é vírgula ou ponto e vírgula
             sample = file.read(1024)
             file.seek(0)
             dialect = csv.Sniffer().sniff(sample)
+        route_info = self.api_client.get_route(ABATEDOURO_LAT, ABATEDOURO_LON, lat, lon)
 
-            reader = csv.DictReader(file, dialect=dialect)
+        if route_info:
+            distancia_km = route_info['distancia_km']
+            tempo_horas = distancia_km / VELOCIDADE_MEDIA_KMH
+            tempo_minutos = tempo_horas * 60
+            
+            row['distancia_km'] = round(distancia_km, 2)
+            row['tempo_minutos'] = round(tempo_minutos, 1)
+            
+            self.logger.info(f"Aviário: {aviario:<10} | Produtor: {nome[:20]:<20} | Dist.: {distancia_km:>8.2f} km | Tempo: {tempo_minutos:>6.1f} min")
+            
+            # Gerar relatório individual
+            self.report_generator.generate_aviary_report(aviario, row, route_info)
 
-            # Limpando espaços em branco dos nomes das colunas (caso existam)
-            reader.fieldnames = [name.strip() for name in reader.fieldnames]
-
-            for row in reader:
-                try:
-                    # Usando strip() nos valores para evitar erros de conversão
-                    aviario = row["aviario"].strip()
-                    nome = row["nome produtor"].strip()
-                    lat = float(row["latitude"].strip())
-                    lon = float(row["longitude"].strip())
-
-                    # Cálculo da distância real via OSRM
-                    distancia_km = calcular_rota_real(lat, lon)
-
-                    if distancia_km is not None:
-                        # Tempo = Distância / Velocidade
-                        tempo_horas = distancia_km / VELOCIDADE_MEDIA_KMH
-                        tempo_minutos = tempo_horas * 60
-
-                        print(
-                            f"{aviario:<10} | {nome[:20]:<20} | {distancia_km:>10.2f} | {tempo_minutos:>10.1f}"
-                        )
-
-                        row["distancia_km"] = round(distancia_km, 2)
-                        row["tempo_minutos"] = round(tempo_minutos, 1)
-                        resultados.append(row)
-                    else:
-                        print(
-                            f"{aviario:<10} | {nome[:20]:<20} | {'ERRO API':>10} | {'ERRO API':>10}"
-                        )
-
-                except (ValueError, KeyError) as e:
-                    # Pular linhas com erro de dado (ex: latitude vazia ou inválida)
-                    continue
-
-                # Pequeno delay para evitar sobrecarga na API pública
-                time.sleep(0.5)
-
-    except FileNotFoundError:
-        print(f"Erro: Arquivo {csv_path} não encontrado.")
-    except Exception as e:
-        print(f"Ocorreu um erro inesperado: {e}")
-
-    return resultados
+            return row
+        else:
+            self.logger.error(f"Não foi possível calcular a rota para o aviário {aviario}")
+            return None
 
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:
         csv_input = sys.argv[1]
     else:
-        csv_input = "../data/raw/aviarios.csv"
+        # Resolve o caminho para ../data/raw/aviarios.csv relativo ao script de forma absoluta
+        base_path = Path(__file__).resolve().parent
+        csv_input = base_path.parent / "data" / "raw" / "aviarios.csv"
+    def _save_results(self, resultados):
+        if not resultados:
+            self.logger.warning("Nenhum resultado para salvar.")
+            return
 
-    processar_aviarios(csv_input)
+        os.makedirs(os.path.dirname(self.processed_csv_path), exist_ok=True)
+        
+        fieldnames = resultados[0].keys()
+        try:
+            with open(self.processed_csv_path, mode='w', encoding='utf-8', newline='') as file:
+                writer = csv.DictWriter(file, fieldnames=fieldnames)
+                writer.writeheader()
+                writer.writerows(resultados)
+            self.logger.info(f"Resultados salvos em {self.processed_csv_path}")
+        except Exception as e:
+            self.logger.error(f"Erro ao salvar CSV processado: {e}")
+
+if __name__ == "__main__":
+    # Mantendo compatibilidade se chamado diretamente
+    processor = AviaryProcessor(
+        raw_csv_path="data/raw/aviarios.csv",
+        processed_csv_path="data/processed/aviarios_processados.csv"
+    )
+    processor.run()
