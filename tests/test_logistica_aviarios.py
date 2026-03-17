@@ -1,25 +1,32 @@
 import unittest
 from unittest.mock import patch, MagicMock
 import requests
-from src.logistica_aviarios import calcular_rota_real
+from src.api_client import OSRMClient
 
 class TestLogisticaAviarios(unittest.TestCase):
 
-    @patch('src.logistica_aviarios.requests.get')
-    def test_calcular_rota_real_success(self, mock_get):
+    @patch('src.api_client.requests.get')
+    def test_get_route_success(self, mock_get):
         # Configurar o mock para um retorno de sucesso
         mock_response = MagicMock()
         mock_response.json.return_value = {
             "code": "Ok",
-            "routes": [{"distance": 1500.0}]  # 1.5 km
+            "routes": [{
+                "distance": 1500.0,
+                "duration": 600,
+                "geometry": {},
+                "legs": [{"steps": []}]
+            }]
         }
         mock_get.return_value = mock_response
 
-        resultado = calcular_rota_real(-24.0, -53.0)
-        self.assertEqual(resultado, 1.5)
+        client = OSRMClient()
+        resultado = client.get_route(-24.0, -53.0, -24.1, -53.1)
+        self.assertEqual(resultado["distancia_km"], 1.5)
+        self.assertEqual(resultado["duracao_segundos"], 600)
 
-    @patch('src.logistica_aviarios.requests.get')
-    def test_calcular_rota_real_api_error_code(self, mock_get):
+    @patch('src.api_client.requests.get')
+    def test_get_route_api_error_code(self, mock_get):
         # Configurar o mock para um retorno com código de erro da API
         mock_response = MagicMock()
         mock_response.json.return_value = {
@@ -27,15 +34,17 @@ class TestLogisticaAviarios(unittest.TestCase):
         }
         mock_get.return_value = mock_response
 
-        resultado = calcular_rota_real(-24.0, -53.0)
+        client = OSRMClient()
+        resultado = client.get_route(-24.0, -53.0, -24.1, -53.1)
         self.assertIsNone(resultado)
 
-    @patch('src.logistica_aviarios.requests.get')
-    def test_calcular_rota_real_exception(self, mock_get):
+    @patch('src.api_client.requests.get')
+    def test_get_route_exception(self, mock_get):
         # Configurar o mock para lançar uma exceção (ex: Timeout)
         mock_get.side_effect = requests.exceptions.RequestException("Timeout error")
 
-        resultado = calcular_rota_real(-24.0, -53.0)
+        client = OSRMClient()
+        resultado = client.get_route(-24.0, -53.0, -24.1, -53.1)
         self.assertIsNone(resultado)
 
 if __name__ == '__main__':
