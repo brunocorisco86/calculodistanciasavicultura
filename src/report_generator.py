@@ -1,5 +1,6 @@
 import os
 import matplotlib.pyplot as plt
+import folium
 from src.utils.logger import setup_logger
 
 class ReportGenerator:
@@ -21,11 +22,41 @@ class ReportGenerator:
         plot_path = os.path.join(aviary_folder, "rota.png")
         self._plot_route(route_info["geometria"], plot_path, aviary_id)
 
+        # Generate Interactive Map
+        map_path = os.path.join(aviary_folder, "mapa_interativo.html")
+        self._generate_interactive_map(route_info["geometria"], map_path, aviary_id)
+
         # Generate Markdown
         md_path = os.path.join(aviary_folder, "relatorio.md")
         self._save_markdown(md_path, aviary_id, data, route_info)
 
         self.logger.info(f"Relatório gerado para aviário {aviary_id} em {aviary_folder}")
+
+    def _generate_interactive_map(self, geometry, save_path, aviary_id):
+        """
+        Generates an interactive HTML map using Folium.
+        """
+        try:
+            coords = geometry["coordinates"]
+            # Folium uses (lat, lon), OSRM/GeoJSON uses (lon, lat)
+            points = [(lat, lon) for lon, lat in coords]
+
+            # Start map centered on the first point
+            m = folium.Map(location=points[0], zoom_start=12)
+
+            # Add route line
+            folium.PolyLine(points, color="blue", weight=5, opacity=0.7).add_to(m)
+
+            # Add markers
+            folium.Marker(location=points[0], popup="Início (Abatedouro)", icon=folium.Icon(color="green")).add_to(m)
+            folium.Marker(location=points[-1], popup=f"Fim (Aviário {aviary_id})", icon=folium.Icon(color="red")).add_to(m)
+
+            # Fit map to bounds
+            m.fit_bounds([points[0], points[-1]])
+
+            m.save(save_path)
+        except Exception as e:
+            self.logger.error(f"Erro ao gerar mapa interativo para {aviary_id}: {e}")
 
     def _plot_route(self, geometry, save_path, aviary_id):
         """
@@ -107,6 +138,8 @@ class ReportGenerator:
 
 ## Mapa da Rota
 ![Rota](rota.png)
+
+[Visualizar Mapa Interativo](mapa_interativo.html)
 
 {new_section}"""
 
