@@ -13,17 +13,17 @@ class TestLogisticaAviarios(unittest.TestCase):
             "code": "Ok",
             "routes": [{
                 "distance": 1500.0,
-                "duration": 120.0,
-                "geometry": {"coordinates": [[-53.0, -24.0], [-53.1, -24.1]]}
+                "duration": 600,
+                "geometry": {},
+                "legs": [{"steps": []}]
             }]
         }
         mock_get.return_value = mock_response
 
         client = OSRMClient()
         resultado = client.get_route(-24.0, -53.0, -24.1, -53.1)
-
-        self.assertIsNotNone(resultado)
         self.assertEqual(resultado["distancia_km"], 1.5)
+        self.assertEqual(resultado["duracao_segundos"], 600)
 
     @patch('src.api_client.requests.get')
     def test_get_route_api_error_code(self, mock_get):
