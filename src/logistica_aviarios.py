@@ -23,7 +23,7 @@ def calcular_rota_real(lat_dest, lon_dest):
     )
     
     try:
-        response = requests.get(url, timeout=10)
+        response = requests.get(url, timeout=30)
         data = response.json()
         
         if data.get("code") == "Ok":
@@ -46,31 +46,45 @@ def processar_aviarios(csv_path):
     resultados = []
     
     try:
-        with open(csv_path, mode='r', encoding='utf-8') as file:
-            reader = csv.DictReader(file, delimiter=';')
-            print(f"DEBUG: Fieldnames: {reader.fieldnames}")
-            reader.fieldnames = [header.strip().replace('\r', '') for header in reader.fieldnames]
+        # Usando utf-8-sig para remover automaticamente o BOM (\ufeff) se presente
+        with open(csv_path, mode='r', encoding='utf-8-sig') as file:
+            # Detectando se o delimitador é vírgula ou ponto e vírgula
+            sample = file.read(1024)
+            file.seek(0)
+            dialect = csv.Sniffer().sniff(sample)
+            
+            reader = csv.DictReader(file, dialect=dialect)
+            
+            # Limpando espaços em branco dos nomes das colunas (caso existam)
+            reader.fieldnames = [name.strip() for name in reader.fieldnames]
+            
             for row in reader:
-                aviario = row['aviario']
-                nome = row['nome produtor']
-                lat = float(row['latitude'])
-                lon = float(row['longitude'])
-                
-                # Cálculo da distância real via OSRM
-                distancia_km = calcular_rota_real(lat, lon)
-                
-                if distancia_km is not None:
-                    # Tempo = Distância / Velocidade
-                    tempo_horas = distancia_km / VELOCIDADE_MEDIA_KMH
-                    tempo_minutos = tempo_horas * 60
+                try:
+                    # Usando strip() nos valores para evitar erros de conversão
+                    aviario = row['aviario'].strip()
+                    nome = row['nome produtor'].strip()
+                    lat = float(row['latitude'].strip())
+                    lon = float(row['longitude'].strip())
                     
-                    print(f"{aviario:<10} | {nome[:20]:<20} | {distancia_km:>10.2f} | {tempo_minutos:>10.1f}")
+                    # Cálculo da distância real via OSRM
+                    distancia_km = calcular_rota_real(lat, lon)
                     
-                    row['distancia_km'] = round(distancia_km, 2)
-                    row['tempo_minutos'] = round(tempo_minutos, 1)
-                    resultados.append(row)
-                else:
-                    print(f"{aviario:<10} | {nome[:20]:<20} | {'ERRO':>10} | {'ERRO':>10}")
+                    if distancia_km is not None:
+                        # Tempo = Distância / Velocidade
+                        tempo_horas = distancia_km / VELOCIDADE_MEDIA_KMH
+                        tempo_minutos = tempo_horas * 60
+                        
+                        print(f"{aviario:<10} | {nome[:20]:<20} | {distancia_km:>10.2f} | {tempo_minutos:>10.1f}")
+                        
+                        row['distancia_km'] = round(distancia_km, 2)
+                        row['tempo_minutos'] = round(tempo_minutos, 1)
+                        resultados.append(row)
+                    else:
+                        print(f"{aviario:<10} | {nome[:20]:<20} | {'ERRO API':>10} | {'ERRO API':>10}")
+                
+                except (ValueError, KeyError) as e:
+                    # Pular linhas com erro de dado (ex: latitude vazia ou inválida)
+                    continue
                 
                 # Pequeno delay para evitar sobrecarga na API pública
                 time.sleep(0.5)
@@ -78,7 +92,7 @@ def processar_aviarios(csv_path):
     except FileNotFoundError:
         print(f"Erro: Arquivo {csv_path} não encontrado.")
     except Exception as e:
-        print(f"Ocorreu um erro: {e}")
+        print(f"Ocorreu um erro inesperado: {e}")
 
     return resultados
 
@@ -86,6 +100,6 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         csv_input = sys.argv[1]
     else:
-        csv_input = "aviarios.csv"
+        csv_input = "../data/raw/aviarios.csv"
         
     processar_aviarios(csv_input)
