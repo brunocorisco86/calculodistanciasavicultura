@@ -26,6 +26,7 @@ class AviaryProcessor:
     def run(self) -> None:
         self.logger.info("Iniciando processamento de aviários...")
         resultados = []
+        all_routes_info = {}
 
         try:
             with open(self.raw_csv_path, mode="r", encoding="utf-8-sig") as file:
@@ -41,9 +42,12 @@ class AviaryProcessor:
 
                 for row in reader:
                     try:
-                        processed_row = self._process_row(row)
+                        # Modified: collect geometry if successful
+                        aviario = row["aviario"].strip()
+                        processed_row, route_info = self._process_row_v2(row)
                         if processed_row:
                             resultados.append(processed_row)
+                            all_routes_info[aviario] = route_info
                     except Exception as e:
                         self.logger.error(
                             f"Erro ao processar linha {row.get('aviario', 'DESCONHECIDO')}: {e}"
@@ -53,6 +57,14 @@ class AviaryProcessor:
                     time.sleep(0.5)
 
             self._save_results(resultados)
+
+            # Generate summary map with all routes
+            if all_routes_info:
+                self.report_generator.generate_summary_map(
+                    all_routes_info,
+                    (ABATEDOURO_LAT, ABATEDOURO_LON)
+                )
+
             self.logger.info(
                 "Processamento concluído. %d registros processados.",
                 len(resultados)
@@ -64,6 +76,11 @@ class AviaryProcessor:
             self.logger.error("Ocorreu um erro inesperado: %s", e)
 
     def _process_row(self, row: dict) -> dict | None:
+        # Mantendo compatibilidade legada se necessário
+        processed, _ = self._process_row_v2(row)
+        return processed
+
+    def _process_row_v2(self, row: dict) -> tuple[dict | None, dict | None]:
         aviario = row["aviario"].strip()
         nome = row["nome produtor"].strip()
 
@@ -76,7 +93,7 @@ class AviaryProcessor:
                 aviario,
                 e,
             )
-            return None
+            return None, None
 
         route_info = self.api_client.get_route(
             ABATEDOURO_LAT,
@@ -90,7 +107,7 @@ class AviaryProcessor:
                 "Não foi possível calcular a rota para o aviário %s",
                 aviario,
             )
-            return None
+            return None, None
 
         distancia_km = route_info["distancia_km"]
         tempo_horas = distancia_km / VELOCIDADE_MEDIA_KMH
@@ -110,7 +127,7 @@ class AviaryProcessor:
         # Gerar relatório individual
         self.report_generator.generate_aviary_report(aviario, row, route_info)
 
-        return row
+        return row, route_info
 
     def _save_results(self, resultados: list[dict]) -> None:
         if not resultados:
