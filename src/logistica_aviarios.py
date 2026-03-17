@@ -2,6 +2,7 @@ import csv
 import requests
 import time
 import sys
+from pathlib import Path
 
 # Configurações do Ponto de Partida (Abatedouro)
 ABATEDOURO_LAT = -24.330706428602536
@@ -100,6 +101,8 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         csv_input = sys.argv[1]
     else:
-        csv_input = "../data/raw/aviarios.csv"
+        # Resolve o caminho para ../data/raw/aviarios.csv relativo ao script de forma absoluta
+        base_path = Path(__file__).resolve().parent
+        csv_input = base_path.parent / "data" / "raw" / "aviarios.csv"
         
     processar_aviarios(csv_input)
