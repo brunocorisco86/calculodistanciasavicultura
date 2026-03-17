@@ -2,6 +2,7 @@ import csv
 import requests
 import time
 import sys
+import os
 
 # Configurações do Ponto de Partida (Abatedouro)
 ABATEDOURO_LAT = -24.330706428602536
@@ -37,6 +38,20 @@ def calcular_rota_real(lat_dest, lon_dest):
         return None
 
 def processar_aviarios(csv_path):
+    # Validação de segurança do caminho do arquivo (Prevenção de Path Traversal)
+    # Garante que o caminho esteja dentro do diretório do projeto usando realpath
+    # para resolver symlinks e commonpath para evitar prefix bypass.
+    try:
+        base_dir = os.path.realpath(os.path.dirname(os.path.dirname(__file__)))
+        target_path = os.path.realpath(csv_path)
+
+        if os.path.commonpath([base_dir]) != os.path.commonpath([base_dir, target_path]):
+            print(f"Erro de Segurança: O caminho {csv_path} está fora do diretório permitido.")
+            return []
+    except Exception as e:
+        print(f"Erro ao validar o caminho do arquivo: {e}")
+        return []
+
     print(f"{'='*60}")
     print(f"{'LOGÍSTICA DE APANHA - AVÍCOLA':^60}")
     print(f"{'='*60}")
@@ -47,7 +62,7 @@ def processar_aviarios(csv_path):
     
     try:
         # Usando utf-8-sig para remover automaticamente o BOM (\ufeff) se presente
-        with open(csv_path, mode='r', encoding='utf-8-sig') as file:
+        with open(target_path, mode='r', encoding='utf-8-sig') as file:
             # Detectando se o delimitador é vírgula ou ponto e vírgula
             sample = file.read(1024)
             file.seek(0)
