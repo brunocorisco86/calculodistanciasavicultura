@@ -1,6 +1,8 @@
 import csv
 import os
 import time
+import sys
+from pathlib import Path
 from src.utils.logger import setup_logger
 from src.api_client import OSRMClient
 from src.report_generator import ReportGenerator
@@ -80,6 +82,13 @@ class AviaryProcessor:
             self.logger.error(f"Não foi possível calcular a rota para o aviário {aviario}")
             return None
 
+if __name__ == "__main__":
+    if len(sys.argv) > 1:
+        csv_input = sys.argv[1]
+    else:
+        # Resolve o caminho para ../data/raw/aviarios.csv relativo ao script de forma absoluta
+        base_path = Path(__file__).resolve().parent
+        csv_input = base_path.parent / "data" / "raw" / "aviarios.csv"
     def _save_results(self, resultados):
         if not resultados:
             self.logger.warning("Nenhum resultado para salvar.")
