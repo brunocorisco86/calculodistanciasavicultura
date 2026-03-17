@@ -17,6 +17,9 @@ env/
 # Data
 data/processed/
 
+# Reports
+docs/rotas_por_aviario/
+
 # Misc
 .DS_Store
 *.log

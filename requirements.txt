@@ -1,6 +1,6 @@
 # List your project dependencies here, e.g.:
-# pandas
-# numpy
-# openpyxl
+pandas
+numpy
+openpyxl
 requests
 matplotlib
