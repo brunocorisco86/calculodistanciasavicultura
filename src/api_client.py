@@ -14,7 +14,7 @@ class OSRMClient:
         """
         Consults the OSRM API to get the real distance and geometry via roads.
         """
-        url = f"{self.BASE_URL}{lon_start},{lat_start};{lon_end},{lat_end}?overview=full&geometries=geojson"
+        url = f"{self.BASE_URL}{lon_start},{lat_start};{lon_end},{lat_end}?overview=full&geometries=geojson&steps=true"
 
         for attempt in range(1, self.max_retries + 1):
             try:
@@ -28,11 +28,13 @@ class OSRMClient:
                     distancia_metros = route["distance"]
                     duracao_segundos = route["duration"]
                     geometria = route["geometry"]
+                    steps = route["legs"][0]["steps"] if "legs" in route and route["legs"] else []
 
                     return {
                         "distancia_km": distancia_metros / 1000.0,
                         "duracao_segundos": duracao_segundos,
-                        "geometria": geometria
+                        "geometria": geometria,
+                        "steps": steps
                     }
                 else:
                     self.logger.error(f"Erro na resposta da API OSRM: {data.get('code')}")
