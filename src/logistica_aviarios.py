@@ -63,6 +63,7 @@ class AviaryProcessor:
             self.logger.warning(f"Coordenadas inválidas para aviário {aviario}: {e}")
             return None
 
+
 def processar_aviarios(csv_path):
     # Validação de segurança do caminho do arquivo (Prevenção de Path Traversal)
     # Garante que o caminho esteja dentro do diretório do projeto usando realpath
@@ -81,11 +82,13 @@ def processar_aviarios(csv_path):
     print(f"{'='*60}")
     print(f"{'LOGÍSTICA DE APANHA - AVÍCOLA':^60}")
     print(f"{'='*60}")
-    print(f"{'Aviário':<10} | {'Produtor':<20} | {'Dist. (km)':<12} | {'Tempo (min)':<10}")
+    print(
+        f"{'Aviário':<10} | {'Produtor':<20} | {'Dist. (km)':<12} | {'Tempo (min)':<10}"
+    )
     print(f"{'-'*60}")
 
     resultados = []
-    
+
     try:
         # Usando utf-8-sig para remover automaticamente o BOM (\ufeff) se presente
         with open(target_path, mode='r', encoding='utf-8-sig') as file:
@@ -112,6 +115,7 @@ def processar_aviarios(csv_path):
         else:
             self.logger.error(f"Não foi possível calcular a rota para o aviário {aviario}")
             return None
+
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:
