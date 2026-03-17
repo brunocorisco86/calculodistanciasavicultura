@@ -2,6 +2,7 @@ import csv
 import os
 import time
 import sys
+import os
 from pathlib import Path
 from src.utils.logger import setup_logger
 from src.api_client import OSRMClient
@@ -62,6 +63,36 @@ class AviaryProcessor:
             self.logger.warning(f"Coordenadas inválidas para aviário {aviario}: {e}")
             return None
 
+def processar_aviarios(csv_path):
+    # Validação de segurança do caminho do arquivo (Prevenção de Path Traversal)
+    # Garante que o caminho esteja dentro do diretório do projeto usando realpath
+    # para resolver symlinks e commonpath para evitar prefix bypass.
+    try:
+        base_dir = os.path.realpath(os.path.dirname(os.path.dirname(__file__)))
+        target_path = os.path.realpath(csv_path)
+
+        if os.path.commonpath([base_dir]) != os.path.commonpath([base_dir, target_path]):
+            print(f"Erro de Segurança: O caminho {csv_path} está fora do diretório permitido.")
+            return []
+    except Exception as e:
+        print(f"Erro ao validar o caminho do arquivo: {e}")
+        return []
+
+    print(f"{'='*60}")
+    print(f"{'LOGÍSTICA DE APANHA - AVÍCOLA':^60}")
+    print(f"{'='*60}")
+    print(f"{'Aviário':<10} | {'Produtor':<20} | {'Dist. (km)':<12} | {'Tempo (min)':<10}")
+    print(f"{'-'*60}")
+
+    resultados = []
+    
+    try:
+        # Usando utf-8-sig para remover automaticamente o BOM (\ufeff) se presente
+        with open(target_path, mode='r', encoding='utf-8-sig') as file:
+            # Detectando se o delimitador é vírgula ou ponto e vírgula
+            sample = file.read(1024)
+            file.seek(0)
+            dialect = csv.Sniffer().sniff(sample)
         route_info = self.api_client.get_route(ABATEDOURO_LAT, ABATEDOURO_LON, lat, lon)
 
         if route_info:
