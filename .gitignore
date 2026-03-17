@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python/
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# Environments
+.env
+venv/
+env/
+.venv/
+
+# Data
+data/processed/
+
+# Misc
+.DS_Store
+*.log
+npm-debug.log*

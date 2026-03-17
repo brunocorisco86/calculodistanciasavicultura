@@ -1,0 +1,5 @@
+# List your project dependencies here, e.g.:
+# pandas
+# numpy
+# openpyxl
+requests
