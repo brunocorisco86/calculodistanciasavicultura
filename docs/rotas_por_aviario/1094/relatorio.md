@@ -1,0 +1,29 @@
+# Relatório de Rota - Aviário 1094
+
+## Informações Gerais
+- **Produtor:** ELISANDRO PIVETTA PUZISKI
+- **Latitude:** -24.350533
+- **Longitude:** -53.879131
+
+## Dados da Rota
+- **Distância Real:** 17.86 km
+- **Tempo Estimado (OSRM):** 26.5 minutos
+- **Tempo Estimado (40 km/h):** 26.8 minutos
+
+## Mapa da Rota
+![Rota](rota.png)
+
+[Visualizar Mapa Interativo](mapa_interativo.html)
+
+## Rota até o aviário
+1. Saia da rua sem nome, siga por 10m.
+2. Vire à direita na Avenida Ariosvaldo Bitencourt, siga por 200m.
+3. Siga em frente na Avenida Ariosvaldo Bitencourt, siga por 2,5 km.
+4. Vire à esquerda na rua sem nome, siga por 1,5 km.
+5. Vire levemente à esquerda na rua sem nome, siga por 660m.
+6. Vire em frente na Rodovia Alberto Dalcanale, siga por 1,7 km.
+7. New name em frente na Avenida Presidente Kennedy, siga por 1,7 km.
+8. Vire à esquerda na Rua 24 de Junho, siga por 1,6 km.
+9. New name em frente na Estrada Municipal Orestes Viletti, siga por 2,5 km.
+10. New name em frente na rua sem nome, siga por 5,4 km.
+11. Você chegará ao aviário 1094 à direita.
