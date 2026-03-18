@@ -21,3 +21,6 @@ data/processed/
 .DS_Store
 *.log
 npm-debug.log*
+
+# Docs
+docs/rotas_por_aviario/
