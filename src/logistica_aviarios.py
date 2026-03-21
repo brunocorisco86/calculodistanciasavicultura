@@ -8,8 +8,9 @@ from src.api_client import OSRMClient
 from src.report_generator import ReportGenerator
 
 # Configurações do Ponto de Partida (Abatedouro)
-ABATEDOURO_LAT = -24.330706428602536
-ABATEDOURO_LON = -53.85805796419288
+# coordenadas = -24.330477143283094, -53.858050866934214
+ABATEDOURO_LAT = -24.330477143283094
+ABATEDOURO_LON = -53.858050866934214
 VELOCIDADE_MEDIA_KMH = 40.0
 
 class AviaryProcessor:
