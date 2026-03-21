@@ -1,98 +1,87 @@
 # Logística de Apanha - Avicultura 🚛🐔
 
-Este projeto foi desenvolvido para otimizar a logística de transporte na avicultura, calculando rotas reais, distâncias e tempos de viagem entre um abatedouro central e diversos aviários integrados.
+Sistema inteligente para otimização logística na avicultura, focado no cálculo de rotas reais, distâncias precisas e tempos de viagem entre abatedouros e aviários integrados.
 
 ## 📌 Visão Geral
 
-O sistema utiliza a API do **OSRM (Open Source Routing Machine)** para obter trajetórias reais via estradas (OpenStreetMap), superando a limitação de cálculos lineares (Haversine). Ele é capaz de processar lotes de aviários a partir de arquivos CSV e gerar relatórios detalhados individuais.
+Este projeto substitui cálculos simplistas de distância linear (Haversine) por trajetórias reais baseadas na malha viária (OpenStreetMap), utilizando a API do **OSRM (Open Source Routing Machine)**. Ele processa grandes volumes de dados de aviários e gera documentação completa para suporte à decisão logística.
 
 ## ✨ Principais Funcionalidades
 
-- **Cálculo de Rota Real:** Distância precisa baseada na malha viária atualizada.
-- **Estimativa de Tempo:** Cálculo baseado em velocidade média configurável (padrão: 40 km/h).
-- **Processamento em Lote:** Leitura automatizada de múltiplos pontos a partir de CSV.
-- **Relatórios Individuais:** Para cada aviário, o sistema gera:
-  - 📄 **Relatório Markdown:** Com informações gerais e roteiro passo a passo em português.
-  - 🗺️ **Mapa Interativo (HTML):** Visualização dinâmica da rota usando Folium.
-  - 📉 **Gráfico de Rota (PNG):** Representação estática da trajetória.
-- **Logging Completo:** Rastreamento de todo o processo para auditoria e depuração.
+- **Cálculo de Rota Real:** Trajetória exata via estradas atualizadas.
+- **Estimativa de Tempo Dual:** 
+  - Tempo dinâmico baseado no motor de roteamento OSRM.
+  - Tempo fixo baseado em velocidade média operacional (ex: 40 km/h).
+- **Relatórios Multiformato:** Para cada aviário, o sistema gera automaticamente:
+  - 📄 **Relatório PDF:** Documento consolidado com mapa, roteiro e link interativo.
+  - 🗺️ **Mapa Interativo (HTML):** Visualização dinâmica com zoom e marcadores (Folium).
+  - 📝 **Relatório Markdown:** Documentação técnica da rota em texto.
+  - 📉 **Gráfico de Rota (PNG):** Representação estática da trajetória para consulta rápida.
+- **Processamento em Lote:** Capacidade de processar milhares de pontos a partir de arquivos CSV.
+- **Logging Robusto:** Rastreamento completo para auditoria e monitoramento de falhas.
 
 ## 🚀 Como Começar
 
 ### Pré-requisitos
 
-- Python 3.8 ou superior
-- Pip (gerenciador de pacotes)
+- Python 3.12 (ou superior)
+- Ambiente Virtual (venv) configurado
 
 ### Instalação
 
-1. Clone o repositório:
+1. Clone o repositório e acesse a pasta:
    ```bash
    git clone <url-do-repositorio>
    cd calculodistanciasavicultura
    ```
 
-2. Crie e ative um ambiente virtual (recomendado):
+2. Configure o ambiente virtual e instale as dependências:
    ```bash
    python -m venv .venv
    source .venv/bin/activate  # Linux/macOS
-   # ou
-   .venv\Scripts\activate     # Windows
-   ```
-
-3. Instale as dependências:
-   ```bash
    pip install -r requirements.txt
    ```
 
 ## 🛠️ Uso
 
 ### Preparação dos Dados
+Coloque seu arquivo de entrada em `data/raw/aviarios.csv`. O formato esperado é:
+`aviario, nome produtor, latitude, longitude`
 
-O arquivo de entrada (`data/raw/aviarios.csv`) deve seguir o seguinte formato:
-
-| aviario | nome produtor | latitude | longitude |
-|---------|---------------|----------|-----------|
-| 1000    | José da Silva | -24.331  | -53.858   |
-
-### Execução
-
-Para iniciar o processamento, execute o `main.py`:
-
+### Execução Principal
+Para gerar todos os relatórios (MD, HTML, PNG e PDF):
 ```bash
 python main.py
 ```
 
-Você também pode especificar um arquivo CSV customizado:
-
+### Conversão Manual para PDF
+Caso já tenha as pastas geradas e queira apenas criar/atualizar os PDFs:
 ```bash
-python main.py caminho/para/seu_arquivo.csv
+python src/convert_to_pdf.py
 ```
 
 ## 📁 Estrutura do Projeto
 
 ```text
 ├── data/
-│   ├── raw/                # Dados de entrada (CSV)
-│   └── processed/          # Resultados consolidados (CSV)
+│   ├── raw/                # CSVs de entrada
+│   └── processed/          # Resultados consolidados
 ├── docs/
-│   └── rotas_por_aviario/  # Relatórios, mapas e gráficos individuais
+│   └── rotas_por_aviario/  # [IGNORADO] Relatórios gerados individualmente
 ├── src/
-│   ├── api_client.py       # Integração com a API OSRM
-│   ├── logistica_aviarios.py # Lógica principal de processamento
-│   ├── report_generator.py  # Geração de relatórios e mapas
-│   └── utils/              # Loggers e funções auxiliares
-├── tests/                  # Testes unitários
-├── main.py                 # Ponto de entrada da aplicação
-└── requirements.txt        # Dependências do projeto
+│   ├── api_client.py       # Cliente API OSRM
+│   ├── logistica_aviarios.py # Core do processamento
+│   ├── report_generator.py  # Engine de geração de relatórios (PDF/HTML/MD)
+│   ├── convert_to_pdf.py    # Script utilitário de conversão em massa
+│   └── utils/              # Auxiliares e Logger
+├── main.py                 # Orquestrador do sistema
+└── requirements.txt        # Dependências (Folium, FPDF2, Matplotlib, etc)
 ```
 
-## ⚙️ Configurações Técnicas
+## 📘 Documentação Adicional
 
-- **Abatedouro Central (Origem):** `-24.3307, -53.8581`
-- **Velocidade Média de Referência:** 40 km/h
-- **API de Roteamento:** [OSRM Project](http://project-osrm.org/)
-- **Bibliotecas Principais:** `requests`, `folium`, `matplotlib`, `pandas` (opcional)
+- [**KNOWLEDGE.md**](./KNOWLEDGE.md): Detalhes técnicos, fórmulas de cálculo e arquitetura.
+- [**CHANGELOG.md**](./CHANGELOG.md): Histórico de melhorias e correções.
 
 ---
 *Desenvolvido para C.VALE - Cooperativa Agroindustrial*
