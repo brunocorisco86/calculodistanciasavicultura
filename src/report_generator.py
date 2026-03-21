@@ -1,7 +1,26 @@
 import os
+import re
 import matplotlib.pyplot as plt
 import folium
+from fpdf import FPDF
+from fpdf.enums import XPos, YPos
 from src.utils.logger import setup_logger
+
+class RoutePDF(FPDF):
+    def __init__(self, report_title, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.report_title = report_title
+
+    def header(self):
+        if self.page_no() == 1:
+            self.set_font("helvetica", "B", 16)
+            self.cell(0, 10, self.report_title, border=False, align="C", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+            self.ln(5)
+
+    def footer(self):
+        self.set_y(-15)
+        self.set_font("helvetica", "I", 8)
+        self.cell(0, 10, f"Página {self.page_no()}/{{nb}}", align="C")
 
 class ReportGenerator:
     def __init__(self, output_dir="docs/rotas_por_aviario", logger=None):
@@ -12,7 +31,7 @@ class ReportGenerator:
 
     def generate_aviary_report(self, aviary_id, data, route_info):
         """
-        Generates a folder for the aviary with a markdown report and a route plot.
+        Generates a folder for the aviary with a markdown report, route plot, interactive map and PDF.
         """
         aviary_folder = os.path.join(self.output_dir, str(aviary_id))
         if not os.path.exists(aviary_folder):
@@ -30,7 +49,66 @@ class ReportGenerator:
         md_path = os.path.join(aviary_folder, "relatorio.md")
         self._save_markdown(md_path, aviary_id, data, route_info)
 
+        # Generate PDF
+        pdf_path = os.path.join(aviary_folder, f"relatorio_{aviary_id}.pdf")
+        self._generate_pdf(aviary_id, aviary_folder, pdf_path)
+
         self.logger.info(f"Relatório gerado para aviário {aviary_id} em {aviary_folder}")
+
+    def _generate_pdf(self, aviary_id, folder_path, output_path):
+        """
+        Generates a PDF report combining the plot, a link to the interactive map, and the markdown content.
+        """
+        try:
+            pdf = RoutePDF(report_title=f"Relatório de Rota - Aviário {aviary_id}")
+            pdf.set_auto_page_break(auto=True, margin=15)
+            pdf.add_page()
+            
+            # Link absoluto com prefixo file://
+            html_abs_path = os.path.abspath(os.path.join(folder_path, "mapa_interativo.html"))
+            link_url = f"file://{html_abs_path}"
+
+            # 1. Inserir o Plot (rota.png)
+            plot_path = os.path.join(folder_path, "rota.png")
+            if os.path.exists(plot_path):
+                pdf.image(plot_path, x=10, y=None, w=190)
+                pdf.ln(5)
+
+            # 2. Hyperlink para o Mapa Interativo
+            pdf.set_font("helvetica", "U", 12)
+            pdf.set_text_color(0, 0, 255)
+            pdf.cell(0, 10, "Clique aqui para abrir o Mapa Interativo HTML", align="C", link=link_url, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+            pdf.set_text_color(0, 0, 0)
+            pdf.ln(5)
+
+            # 3. Conteúdo do relatorio.md
+            md_path = os.path.join(folder_path, "relatorio.md")
+            if os.path.exists(md_path):
+                with open(md_path, "r", encoding="utf-8") as f:
+                    lines = f.readlines()
+                
+                for line in lines:
+                    line = line.strip()
+                    if not line or line.startswith("# ") or "![" in line or "[Visualizar" in line:
+                        continue
+                    
+                    if line.startswith("## "):
+                        pdf.set_font("helvetica", "B", 14)
+                        pdf.ln(2)
+                        pdf.cell(0, 10, line.replace("## ", ""), new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+                        pdf.set_font("helvetica", "", 10)
+                        continue
+
+                    clean_line = line.replace("**", "")
+                    pdf.set_font("helvetica", "", 10)
+                    if clean_line.startswith("- ") or re.match(r'^\d+\.', clean_line):
+                        pdf.multi_cell(0, 6, f"  {clean_line}", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+                    else:
+                        pdf.multi_cell(0, 6, clean_line, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+
+            pdf.output(output_path)
+        except Exception as e:
+            self.logger.error(f"Erro ao gerar PDF para {aviary_id}: {e}")
 
     def _generate_interactive_map(self, geometry, save_path, aviary_id):
         """
