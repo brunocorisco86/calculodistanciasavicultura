@@ -28,6 +28,22 @@ O sistema apresenta dois indicadores de tempo:
   $$Tempo (minutos) = \frac{Distância (km)}{40} \times 60$$
   *Este parâmetro é utilizado para alinhar as expectativas com a realidade de veículos pesados em estradas rurais.*
 
+## ⚠️ Qualidade dos Dados e Auditoria
+
+A precisão dos cálculos de rota é diretamente dependente da qualidade dos dados de entrada e da malha viária digital.
+
+### 1. Auditoria de Coordenadas
+É **obrigatório** realizar uma auditoria periódica das coordenadas geográficas (latitude/longitude) dos aviários. Coordenadas imprecisas podem resultar em:
+- Pontos de destino localizados em estradas erradas ou inacessíveis.
+- Rotas que não refletem o trajeto real de entrada na propriedade.
+- Distâncias e tempos de viagem subestimados ou superestimados.
+
+### 2. Auditoria e Edição de Mapas (OpenStreetMap)
+Como o sistema utiliza o **OSRM/OSM**, a atualização constante do mapa da região é vital. Devemos fomentar e manter uma **comunidade de editores de OpenStreetMap** interna ou regional para garantir que:
+- Todas as estradas rurais e acessos estejam devidamente mapeados.
+- A **designação correta de pavimento** (asfalto, terra, cascalho) seja aplicada em cada trecho.
+- O **tipo de estrada** (primária, secundária, serviço) esteja classificado corretamente, influenciando no cálculo de velocidade e tempo operacional.
+
 ## 📂 Formatos de Saída e Decisões Técnicas
 
 ### Relatório PDF (`fpdf2`)

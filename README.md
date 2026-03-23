@@ -78,6 +78,14 @@ python src/convert_to_pdf.py
 └── requirements.txt        # Dependências (Folium, FPDF2, Matplotlib, etc)
 ```
 
+## ⚠️ Qualidade dos Dados e Auditoria
+
+Para garantir a precisão dos resultados, é fundamental observar:
+
+- **Auditoria de Coordenadas:** Antes de realizar atualizações de rotas em larga escala, as coordenadas dos aviários devem ser auditadas para garantir que representam o ponto exato de acesso.
+- **Auditoria de Mapas:** A malha viária regional no **OpenStreetMap (OSM)** deve ser verificada constantemente.
+- **Comunidade OSM:** Recomendamos fomentar uma comunidade de editores para mapear estradas rurais, garantindo a correta designação de **pavimento** e **tipo de estrada**, o que impacta diretamente na precisão do tempo e custo logístico.
+
 ## 📘 Documentação Adicional
 
 - [**KNOWLEDGE.md**](./KNOWLEDGE.md): Detalhes técnicos, fórmulas de cálculo e arquitetura.
