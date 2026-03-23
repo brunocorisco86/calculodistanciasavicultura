@@ -48,6 +48,8 @@ Este projeto substitui cálculos simplistas de distância linear (Haversine) por
 Coloque seu arquivo de entrada em `data/raw/aviarios.csv`. O formato esperado é:
 `aviario, nome produtor, latitude, longitude`
 
+**Dica:** Utilize o modelo disponível em `template/aviarios_template.csv` como base para criar seu arquivo de dados.
+
 ### Execução Principal
 Para gerar todos os relatórios (MD, HTML, PNG e PDF):
 ```bash

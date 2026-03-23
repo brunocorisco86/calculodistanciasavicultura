@@ -18,6 +18,16 @@ Utilizamos o **OSRM (Open Source Routing Machine)**, um motor de roteamento de a
 
 ## 📐 Regras de Cálculo
 
+### 0. Formato de Dados de Entrada
+O sistema processa aviários a partir de um arquivo CSV localizado em `data/raw/aviarios.csv`. 
+O cabeçalho e os tipos de dados esperados são:
+- `aviario`: Identificador numérico único (pode incluir sufixos como `EXT`).
+- `nome produtor`: Nome completo do produtor (texto).
+- `latitude`: Coordenada geográfica decimal (ex: `-24.519303`).
+- `longitude`: Coordenada geográfica decimal (ex: `-53.735319`).
+
+Um modelo deste arquivo está disponível em `template/aviarios_template.csv`.
+
 ### 1. Distância
 A distância retornada pela API é em metros e convertida para quilômetros (km) com duas casas decimais nos relatórios principais.
 

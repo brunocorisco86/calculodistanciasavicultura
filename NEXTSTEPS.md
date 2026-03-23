@@ -17,5 +17,8 @@ Lista de melhorias técnicas e funcionais priorizadas para as próximas sprints 
 - [ ] **Testes de Integração:** Criar testes que validem o fluxo completo desde a leitura do CSV até a existência do arquivo PDF gerado.
 - [ ] **Mock da API:** Implementar mocks para as respostas do OSRM nos testes unitários para permitir execução offline.
 
+## ✅ Concluído
+- [x] **Modelo de Dados:** Criado diretório `template/` com o arquivo `aviarios_template.csv` e documentação correspondente no `README.md` e `KNOWLEDGE.md`.
+
 ---
-*Última atualização: 21 de Março de 2026*
+*Última atualização: 22 de Março de 2026*
