@@ -5,3 +5,5 @@
 requests
 matplotlib
 folium
+polyline
+fpdf

@@ -4,7 +4,7 @@ import time
 import sys
 from pathlib import Path
 from src.utils.logger import setup_logger
-from src.api_client import OSRMClient
+from src.api_client import ValhallaClient
 from src.report_generator import ReportGenerator
 
 # Configurações do Ponto de Partida (Abatedouro)
@@ -18,7 +18,7 @@ class AviaryProcessor:
         self.raw_csv_path = raw_csv_path
         self.processed_csv_path = processed_csv_path
         self.logger = logger or setup_logger("AviaryProcessor", log_file="src/utils/processamento.log")
-        self.api_client = OSRMClient(timeout=30, max_retries=3, logger=self.logger)
+        self.api_client = ValhallaClient(timeout=30, max_retries=3, logger=self.logger)
         self.report_generator = ReportGenerator(logger=self.logger)
 
     def run(self):

@@ -242,56 +242,29 @@ class ReportGenerator:
 
     def _generate_instructions(self, steps, aviary_id):
         """
-        Converts OSRM RouteSteps into natural Portuguese sentences.
+        Converts Valhalla maneuvers into natural Portuguese sentences.
         """
         instructions = []
 
-        # Mapping for modifiers
-        modifiers_pt = {
-            "left": "à esquerda",
-            "right": "à direita",
-            "sharp left": "acentuadamente à esquerda",
-            "sharp right": "acentuadamente à direita",
-            "slight left": "levemente à esquerda",
-            "slight right": "levemente à direita",
-            "straight": "em frente",
-            "uturn": "em retorno"
-        }
+        for i, maneuver in enumerate(steps):
+            # Valhalla provide instruction directly in the requested language
+            instr = maneuver.get("instruction", "")
+            length = maneuver.get("length", 0)
 
-        for i, step in enumerate(steps):
-            maneuver = step.get("maneuver", {})
-            m_type = maneuver.get("type")
-            m_modifier = maneuver.get("modifier")
-            name = step.get("name", "")
-            distance = step.get("distance", 0)
+            # length is in kilometers (as requested in api_client.py)
+            distance_meters = length * 1000
+            formatted_dist = self._format_distance(distance_meters)
 
-            if not name:
-                name = "rua sem nome"
-
-            formatted_dist = self._format_distance(distance)
-
-            if m_type == "depart":
-                instr = f"Saia da {name}"
-            elif m_type == "arrive":
-                instr = f"Você chegará ao aviário {aviary_id}"
-                if m_modifier in ["left", "right"]:
-                    instr += f" {modifiers_pt[m_modifier]}"
-            elif m_type == "turn":
-                modifier_str = modifiers_pt.get(m_modifier, m_modifier)
-                instr = f"Vire {modifier_str} na {name}"
-            elif m_type in ["continue", "on ramp", "merge"]:
-                instr = f"Siga em frente na {name}"
-            else:
-                modifier_str = modifiers_pt.get(m_modifier, m_modifier if m_modifier else "")
-                if modifier_str:
-                    instr = f"{m_type.capitalize()} {modifier_str} na {name}"
-                else:
-                    instr = f"{m_type.capitalize()} na {name}"
-
-            if distance > 0 and m_type != "arrive":
+            if i < len(steps) - 1 and distance_meters > 0:
+                # Append distance if not the last maneuver
+                if instr.endswith("."):
+                    instr = instr[:-1]
                 instr += f", siga por {formatted_dist}."
-            else:
-                instr += "."
+            elif i == len(steps) - 1:
+                # Adjust last instruction if necessary
+                if "chegar" in instr.lower() or "destino" in instr.lower():
+                    instr = instr.replace("Seu destino", f"O aviário {aviary_id}")
+                    instr = instr.replace("seu destino", f"o aviário {aviary_id}")
 
             instructions.append(f"{i+1}. {instr}")
 
