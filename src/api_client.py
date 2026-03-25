@@ -1,12 +1,15 @@
 import requests
 import time
+import os
 import polyline
 from src.utils.logger import setup_logger
 
 class ValhallaClient:
-    BASE_URL = "https://valhalla1.openstreetmap.de/route"
+    # URL padrão local, podendo ser sobrescrita por variável de ambiente
+    BASE_URL = os.getenv("VALHALLA_URL", "http://localhost:8002/route")
 
-    def __init__(self, timeout=30, max_retries=3, logger=None):
+    def __init__(self, base_url=None, timeout=30, max_retries=3, logger=None):
+        self.base_url = base_url or self.BASE_URL
         self.timeout = timeout
         self.max_retries = max_retries
         self.logger = logger or setup_logger("ValhallaClient")
@@ -27,8 +30,8 @@ class ValhallaClient:
 
         for attempt in range(1, self.max_retries + 1):
             try:
-                self.logger.info(f"Tentativa {attempt}/{self.max_retries}: Consultando API Valhalla para ({lat_end}, {lon_end})")
-                response = requests.post(self.BASE_URL, json=params, timeout=self.timeout)
+                self.logger.info(f"Tentativa {attempt}/{self.max_retries}: Consultando API Valhalla em {self.base_url} para ({lat_end}, {lon_end})")
+                response = requests.post(self.base_url, json=params, timeout=self.timeout)
                 response.raise_for_status()
                 data = response.json()
 
