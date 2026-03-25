@@ -4,13 +4,13 @@ Sistema inteligente para otimização logística na avicultura, focado no cálcu
 
 ## 📌 Visão Geral
 
-Este projeto substitui cálculos simplistas de distância linear (Haversine) por trajetórias reais baseadas na malha viária (OpenStreetMap), utilizando a API do **OSRM (Open Source Routing Machine)**. Ele processa grandes volumes de dados de aviários e gera documentação completa para suporte à decisão logística.
+Este projeto substitui cálculos simplistas de distância linear (Haversine) por trajetórias reais baseadas na malha viária (OpenStreetMap), utilizando a API do **Valhalla**. Ele processa grandes volumes de dados de aviários e gera documentação completa para suporte à decisão logística.
 
 ## ✨ Principais Funcionalidades
 
 - **Cálculo de Rota Real:** Trajetória exata via estradas atualizadas.
 - **Estimativa de Tempo Dual:** 
-  - Tempo dinâmico baseado no motor de roteamento OSRM.
+  - Tempo dinâmico baseado no motor de roteamento Valhalla (Perfil: Truck).
   - Tempo fixo baseado em velocidade média operacional (ex: 40 km/h).
 - **Relatórios Multiformato:** Para cada aviário, o sistema gera automaticamente:
   - 📄 **Relatório PDF:** Documento consolidado com mapa, roteiro e link interativo.
@@ -21,6 +21,21 @@ Este projeto substitui cálculos simplistas de distância linear (Haversine) por
 - **Logging Robusto:** Rastreamento completo para auditoria e monitoramento de falhas.
 
 ## 🚀 Como Começar
+
+### Configuração do Servidor Valhalla (Local via Docker)
+
+Para rodar o processamento localmente com dados atualizados do OpenStreetMap (ex: Brasil/Paraná), você pode subir um container Docker do Valhalla:
+
+1. **Baixe os dados do OSM** (.pbf) do [GeoFabrik](https://download.geofabrik.de/south-america/brazil.html).
+2. **Execute o Valhalla via Docker:**
+   ```bash
+   docker run -dt --name valhalla \
+     -p 8002:8002 \
+     -v $PWD/custom_files:/custom_files \
+     -e tile_extract_url=https://download.geofabrik.de/south-america/brazil/parana-latest.osm.pbf \
+     ghcr.io/valhalla/valhalla:latest
+   ```
+   *Nota: O container irá baixar e processar os tiles na primeira execução. Certifique-se de que a URL no `api_client.py` aponta para `http://localhost:8002/route` se estiver rodando localmente.*
 
 ### Pré-requisitos
 
@@ -71,7 +86,7 @@ python src/convert_to_pdf.py
 ├── docs/
 │   └── rotas_por_aviario/  # [IGNORADO] Relatórios gerados individualmente
 ├── src/
-│   ├── api_client.py       # Cliente API OSRM
+│   ├── api_client.py       # Cliente API Valhalla
 │   ├── logistica_aviarios.py # Core do processamento
 │   ├── report_generator.py  # Engine de geração de relatórios (PDF/HTML/MD)
 │   ├── convert_to_pdf.py    # Script utilitário de conversão em massa
