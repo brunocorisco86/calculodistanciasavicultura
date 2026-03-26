@@ -9,7 +9,7 @@ Este projeto substitui cálculos simplistas de distância linear (Haversine) por
 ## ✨ Principais Funcionalidades
 
 - **Cálculo de Rota Real:** Trajetória exata via estradas atualizadas.
-- **Estimativa de Tempo Dual:** 
+- **Estimativa de Tempo Dual:**
   - Tempo dinâmico baseado no motor de roteamento Valhalla (Perfil: Truck).
   - Tempo fixo baseado em velocidade média operacional (ex: 40 km/h).
 - **Relatórios Multiformato:** Para cada aviário, o sistema gera automaticamente:
@@ -24,22 +24,33 @@ Este projeto substitui cálculos simplistas de distância linear (Haversine) por
 
 ### Configuração do Servidor Valhalla (Local via Docker)
 
-Para rodar o processamento localmente com dados atualizados do OpenStreetMap (ex: Brasil/Paraná), você pode subir um container Docker do Valhalla:
+O projeto inclui um script de setup automatizado que baixa os dados OSM do Sul do Brasil e sobe o container Valhalla.
 
-1. **Baixe os dados do OSM** (.pbf) do [GeoFabrik](https://download.geofabrik.de/south-america/brazil.html).
-2. **Execute o Valhalla via Docker:**
-   ```bash
-   docker run -dt --name valhalla \
-     -p 8002:8002 \
-     -v $PWD/custom_files:/custom_files \
-     -e tile_extract_url=https://download.geofabrik.de/south-america/brazil/parana-latest.osm.pbf \
-     ghcr.io/valhalla/valhalla:latest
-   ```
-   *Nota: O container irá baixar e processar os tiles na primeira execução. Certifique-se de que a URL no `api_client.py` aponta para `http://localhost:8002/route` se estiver rodando localmente.*
+#### Opção 1 — Script automatizado (recomendado)
+
+```bash
+chmod +x docker/setup_valhalla.sh
+./docker/setup_valhalla.sh
+```
+
+O script irá:
+1. Verificar as dependências (`docker`, `curl`, `wget`)
+2. Baixar o arquivo `sul-latest.osm.pbf` do [GeoFabrik](https://download.geofabrik.de/south-america/brazil/sul-latest.osm.pbf) para `custom_files/`
+3. Subir o container Valhalla com volume e porta configurados
+4. Aguardar a inicialização e confirmar que a API está respondendo
+
+#### Opção 2 — Docker Compose
+
+```bash
+docker compose -f docker/docker-compose.yml up -d
+```
+
+> **Nota:** O container processa os tiles OSM na primeira execução — isso pode levar alguns minutos. Acompanhe com `docker logs -f valhalla_cvale`. A URL do endpoint local é `http://localhost:8002/route`, conforme configurado no `api_client.py`.
 
 ### Pré-requisitos
 
-- Python 3.12 (ou superior)
+- Docker Engine (com daemon ativo)
+- Python 3.12 ou superior
 - Ambiente Virtual (venv) configurado
 
 ### Instalação
@@ -60,19 +71,27 @@ Para rodar o processamento localmente com dados atualizados do OpenStreetMap (ex
 ## 🛠️ Uso
 
 ### Preparação dos Dados
-Coloque seu arquivo de entrada em `data/raw/aviarios.csv`. O formato esperado é:
-`aviario, nome produtor, latitude, longitude`
 
-**Dica:** Utilize o modelo disponível em `template/aviarios_template.csv` como base para criar seu arquivo de dados.
+Coloque seu arquivo de entrada em `data/raw/aviarios.csv`. O formato esperado é:
+
+```
+aviario, nome produtor, latitude, longitude
+```
+
+> **Dica:** Utilize o modelo disponível em `template/aviarios_template.csv` como base.
 
 ### Execução Principal
+
 Para gerar todos os relatórios (MD, HTML, PNG e PDF):
+
 ```bash
 python main.py
 ```
 
 ### Conversão Manual para PDF
+
 Caso já tenha as pastas geradas e queira apenas criar/atualizar os PDFs:
+
 ```bash
 python src/convert_to_pdf.py
 ```
@@ -81,18 +100,22 @@ python src/convert_to_pdf.py
 
 ```text
 ├── data/
-│   ├── raw/                # CSVs de entrada
-│   └── processed/          # Resultados consolidados
+│   ├── raw/                    # CSVs de entrada
+│   └── processed/              # Resultados consolidados
+├── docker/
+│   ├── setup_valhalla.sh       # Script de setup do Valhalla
+│   └── docker-compose.yml      # Configuração Docker Compose
 ├── docs/
-│   └── rotas_por_aviario/  # [IGNORADO] Relatórios gerados individualmente
+│   └── rotas_por_aviario/      # [IGNORADO] Relatórios gerados individualmente
 ├── src/
-│   ├── api_client.py       # Cliente API Valhalla
-│   ├── logistica_aviarios.py # Core do processamento
-│   ├── report_generator.py  # Engine de geração de relatórios (PDF/HTML/MD)
-│   ├── convert_to_pdf.py    # Script utilitário de conversão em massa
-│   └── utils/              # Auxiliares e Logger
-├── main.py                 # Orquestrador do sistema
-└── requirements.txt        # Dependências (Folium, FPDF2, Matplotlib, etc)
+│   ├── api_client.py           # Cliente API Valhalla
+│   ├── logistica_aviarios.py   # Core do processamento
+│   ├── report_generator.py     # Engine de geração de relatórios (PDF/HTML/MD)
+│   ├── convert_to_pdf.py       # Script utilitário de conversão em massa
+│   └── utils/                  # Auxiliares e Logger
+├── custom_files/               # [IGNORADO] Dados OSM (.pbf) e tiles Valhalla
+├── main.py                     # Orquestrador do sistema
+└── requirements.txt            # Dependências (Folium, FPDF2, Matplotlib, etc)
 ```
 
 ## ⚠️ Qualidade dos Dados e Auditoria

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # setup_valhalla.sh
-# Configura e sobe o servidor Valhalla com dados do Paraná (OSM/GeoFabrik)
+# Configura e sobe o servidor Valhalla com dados do Sul do Brasil (OSM/GeoFabrik)
 # C.Vale - Logística de Apanha Avicultura
 # =============================================================================
 
@@ -10,8 +10,8 @@ set -euo pipefail
 # ---------------------------------------------------------------------------
 # Variáveis configuráveis
 # ---------------------------------------------------------------------------
-OSM_URL="https://download.geofabrik.de/south-america/brazil/parana-latest.osm.pbf"
-PBF_FILENAME="parana-latest.osm.pbf"
+OSM_URL="https://download.geofabrik.de/south-america/brazil/sul-latest.osm.pbf"
+PBF_FILENAME="sul-latest.osm.pbf"
 CUSTOM_FILES_DIR="$(pwd)/custom_files"
 CONTAINER_NAME="valhalla_cvale"
 VALHALLA_PORT="8002"

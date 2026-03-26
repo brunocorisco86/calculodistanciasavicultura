@@ -5,7 +5,7 @@
 # Uso:
 #   docker compose -f docker/docker-compose.yml up -d
 #
-# Requisito: o arquivo 'custom_files/parana-latest.osm.pbf' deve existir.
+# Requisito: o arquivo 'custom_files/sul-latest.osm.pbf' deve existir.
 #   Execute 'docker/setup_valhalla.sh' para baixar automaticamente.
 # =============================================================================
 
@@ -20,7 +20,7 @@ services:
       - ../custom_files:/custom_files
     environment:
       # Caso os tiles não existam, o container baixa e processa automaticamente
-      tile_urls: https://download.geofabrik.de/south-america/brazil/parana-latest.osm.pbf
+      tile_urls: https://download.geofabrik.de/south-america/brazil/sul-latest.osm.pbf
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8002/status"]
       interval: 30s
