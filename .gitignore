@@ -24,3 +24,7 @@ npm-debug.log*
 
 # Docs
 docs/rotas_por_aviario/
+
+# OSM / Valhalla
+*.pbf
+custom_files/
