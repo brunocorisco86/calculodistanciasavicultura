@@ -29,7 +29,7 @@ class ReportGenerator:
         if not os.path.exists(self.output_dir):
             os.makedirs(self.output_dir)
 
-    def generate_aviary_report(self, aviary_id, data, route_info):
+    def generate_aviary_report(self, aviary_id, data, route_info, start_name="Abatedouro"):
         """
         Generates a folder for the aviary with a markdown report, route plot, interactive map and PDF.
         """
@@ -39,15 +39,15 @@ class ReportGenerator:
 
         # Plot route
         plot_path = os.path.join(aviary_folder, "rota.png")
-        self._plot_route(route_info["geometria"], plot_path, aviary_id)
+        self._plot_route(route_info["geometria"], plot_path, aviary_id, start_name)
 
         # Generate Interactive Map
         map_path = os.path.join(aviary_folder, "mapa_interativo.html")
-        self._generate_interactive_map(route_info["geometria"], map_path, aviary_id)
+        self._generate_interactive_map(route_info["geometria"], map_path, aviary_id, start_name)
 
         # Generate Markdown
         md_path = os.path.join(aviary_folder, "relatorio.md")
-        self._save_markdown(md_path, aviary_id, data, route_info)
+        self._save_markdown(md_path, aviary_id, data, route_info, start_name)
 
         # Generate PDF
         pdf_path = os.path.join(aviary_folder, f"relatorio_{aviary_id}.pdf")
@@ -110,7 +110,7 @@ class ReportGenerator:
         except Exception as e:
             self.logger.error(f"Erro ao gerar PDF para {aviary_id}: {e}")
 
-    def _generate_interactive_map(self, geometry, save_path, aviary_id):
+    def _generate_interactive_map(self, geometry, save_path, aviary_id, start_name="Abatedouro"):
         """
         Generates an interactive HTML map using Folium.
         """
@@ -126,7 +126,7 @@ class ReportGenerator:
             folium.PolyLine(points, color="blue", weight=5, opacity=0.7).add_to(m)
 
             # Add markers
-            folium.Marker(location=points[0], popup="Início (Abatedouro)", icon=folium.Icon(color="green")).add_to(m)
+            folium.Marker(location=points[0], popup=f"Início ({start_name})", icon=folium.Icon(color="green")).add_to(m)
             folium.Marker(location=points[-1], popup=f"Fim (Aviário {aviary_id})", icon=folium.Icon(color="red")).add_to(m)
 
             # Fit map to bounds
@@ -136,7 +136,7 @@ class ReportGenerator:
         except Exception as e:
             self.logger.error(f"Erro ao gerar mapa interativo para {aviary_id}: {e}")
 
-    def _plot_route(self, geometry, save_path, aviary_id):
+    def _plot_route(self, geometry, save_path, aviary_id, start_name="Abatedouro"):
         """
         Plots the route coordinates using matplotlib.
         """
@@ -146,7 +146,7 @@ class ReportGenerator:
 
             plt.figure(figsize=(10, 6))
             plt.plot(lons, lats, marker='o', markersize=2, linestyle='-', color='blue', label='Rota')
-            plt.plot(lons[0], lats[0], 'go', label='Início (Abatedouro)')
+            plt.plot(lons[0], lats[0], 'go', label=f'Início ({start_name})')
             plt.plot(lons[-1], lats[-1], 'ro', label='Fim (Aviário)')
 
             plt.title(f"Rota para o Aviário {aviary_id}")
@@ -160,7 +160,7 @@ class ReportGenerator:
         except Exception as e:
             self.logger.error(f"Erro ao plotar rota para {aviary_id}: {e}")
 
-    def _save_markdown(self, path, aviary_id, data, route_info):
+    def _save_markdown(self, path, aviary_id, data, route_info, start_name="Abatedouro"):
         """
         Saves a markdown file with the route information.
         If the file already exists, it updates the "Rota até o aviário" section.
@@ -205,6 +205,7 @@ class ReportGenerator:
             content = f"""# Relatório de Rota - Aviário {aviary_id}
 
 ## Informações Gerais
+- **Ponto de Partida:** {start_name}
 - **Produtor:** {data.get('nome produtor', 'N/A')}
 - **Latitude:** {data.get('latitude', 'N/A')}
 - **Longitude:** {data.get('longitude', 'N/A')}
