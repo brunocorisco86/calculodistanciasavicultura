@@ -1,34 +1,31 @@
-# =============================================================================
-# docker-compose.yml - Valhalla Routing Engine
-# C.Vale - Logística de Apanha Avicultura
-# =============================================================================
-# Uso:
-#   docker compose -f docker/docker-compose.yml up -d
-#
-# Requisito: o arquivo 'custom_files/sul-latest.osm.pbf' deve existir.
-#   Execute 'docker/setup_valhalla.sh' para baixar automaticamente.
-# =============================================================================
-
 services:
   valhalla:
-    image: ghcr.io/valhalla/valhalla:latest
+    image: ghcr.io/nilsnolde/docker-valhalla/valhalla:latest
     container_name: valhalla_cvale
     restart: unless-stopped
     ports:
       - "8002:8002"
     volumes:
-      - ../custom_files:/custom_files
+      - ../custom_files:/custom_files:rw
     environment:
-      # Caso os tiles não existam, o container baixa e processa automaticamente
-      tile_urls: https://download.geofabrik.de/south-america/brazil/sul-latest.osm.pbf
+      - tile_urls=https://download.geofabrik.de/south-america/brazil/sul-latest.osm.pbf
+      - server_threads=2
+      - serve_tiles=True
+      - use_tiles_ignore_pbf=True
+      - tileset_name=valhalla_tiles
+      - build_elevation=False
+      - build_admins=False
+      - build_time_zones=False
+      - build_tar=True
+      - force_rebuild=False
+      - update_existing_config=True
+      - UID=1000
+      - GID=1000
+    mem_limit: 6G
+    mem_reservation: 4G
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8002/status"]
       interval: 30s
       timeout: 10s
       retries: 10
-      start_period: 120s
-
-# Volumes nomeados opcionais para persistir tiles gerados
-# (útil para não reprocessar a cada reinício)
-volumes:
-  valhalla_tiles: {}
+      start_period: 60s

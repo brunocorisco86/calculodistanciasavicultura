@@ -211,7 +211,7 @@ class ReportGenerator:
 
 ## Dados da Rota
 - **Distância Real:** {route_info['distancia_km']:.2f} km
-- **Tempo Estimado (OSRM):** {route_info['duracao_segundos'] / 60:.1f} minutos
+- **Tempo Estimado (Valhalla):** {route_info['duracao_segundos'] / 60:.1f} minutos
 - **Tempo Estimado (40 km/h):** {data.get('tempo_minutos', 'N/A')} minutos
 
 ## Mapa da Rota

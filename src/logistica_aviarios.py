@@ -42,9 +42,6 @@ class AviaryProcessor:
                     except Exception as e:
                         self.logger.error(f"Erro ao processar linha {row.get('aviario')}: {e}")
 
-                    # Pequeno delay para evitar sobrecarga na API pública
-                    time.sleep(0.5)
-
             self._save_results(resultados)
             self.logger.info(f"Processamento concluído. {len(resultados)} registros processados.")
 
