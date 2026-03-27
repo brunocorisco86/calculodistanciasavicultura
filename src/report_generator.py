@@ -31,23 +31,23 @@ class ReportGenerator:
 
     def generate_aviary_report(self, aviary_id, data, route_info, start_name="Abatedouro"):
         """
-        Generates a folder for the aviary with a markdown report, route plot, interactive map and PDF.
+        Generates a folder for the aviary with a text report, route plot, interactive map and PDF.
         """
         aviary_folder = os.path.join(self.output_dir, str(aviary_id))
         if not os.path.exists(aviary_folder):
             os.makedirs(aviary_folder)
 
         # Plot route
-        plot_path = os.path.join(aviary_folder, "rota.png")
+        plot_path = os.path.join(aviary_folder, f"rota_{aviary_id}.png")
         self._plot_route(route_info["geometria"], plot_path, aviary_id, start_name)
 
         # Generate Interactive Map
-        map_path = os.path.join(aviary_folder, "mapa_interativo.html")
+        map_path = os.path.join(aviary_folder, f"mapa_{aviary_id}.html")
         self._generate_interactive_map(route_info["geometria"], map_path, aviary_id, start_name)
 
-        # Generate Markdown
-        md_path = os.path.join(aviary_folder, "relatorio.md")
-        self._save_markdown(md_path, aviary_id, data, route_info, start_name)
+        # Generate Text Report
+        txt_path = os.path.join(aviary_folder, f"relatorio_{aviary_id}.txt")
+        self._save_text_report(txt_path, aviary_id, data, route_info, start_name)
 
         # Generate PDF
         pdf_path = os.path.join(aviary_folder, f"relatorio_{aviary_id}.pdf")
@@ -57,19 +57,19 @@ class ReportGenerator:
 
     def _generate_pdf(self, aviary_id, folder_path, output_path):
         """
-        Generates a PDF report combining the plot, a link to the interactive map, and the markdown content.
+        Generates a PDF report combining the plot, a link to the interactive map, and the text content.
         """
         try:
             pdf = RoutePDF(report_title=f"Relatório de Rota - Aviário {aviary_id}")
             pdf.set_auto_page_break(auto=True, margin=15)
             pdf.add_page()
             
-            # Link absoluto com prefixo file://
-            html_abs_path = os.path.abspath(os.path.join(folder_path, "mapa_interativo.html"))
+            # Link absoluto para o novo nome do mapa
+            html_abs_path = os.path.abspath(os.path.join(folder_path, f"mapa_{aviary_id}.html"))
             link_url = f"file://{html_abs_path}"
 
-            # 1. Inserir o Plot (rota.png)
-            plot_path = os.path.join(folder_path, "rota.png")
+            # 1. Inserir o Plot (rota_{aviary_id}.png)
+            plot_path = os.path.join(folder_path, f"rota_{aviary_id}.png")
             if os.path.exists(plot_path):
                 pdf.image(plot_path, x=10, y=None, w=190)
                 pdf.ln(5)
@@ -77,18 +77,19 @@ class ReportGenerator:
             # 2. Hyperlink para o Mapa Interativo
             pdf.set_font("helvetica", "U", 12)
             pdf.set_text_color(0, 0, 255)
-            pdf.cell(0, 10, "Clique aqui para abrir o Mapa Interativo HTML", align="C", link=link_url, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+            pdf.cell(0, 10, f"Clique aqui para abrir o Mapa Interativo ({aviary_id})", align="C", link=link_url, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
             pdf.set_text_color(0, 0, 0)
             pdf.ln(5)
 
-            # 3. Conteúdo do relatorio.md
-            md_path = os.path.join(folder_path, "relatorio.md")
-            if os.path.exists(md_path):
-                with open(md_path, "r", encoding="utf-8") as f:
+            # 3. Conteúdo do relatorio_{aviary_id}.txt
+            txt_path = os.path.join(folder_path, f"relatorio_{aviary_id}.txt")
+            if os.path.exists(txt_path):
+                with open(txt_path, "r", encoding="utf-8") as f:
                     lines = f.readlines()
                 
                 for line in lines:
                     line = line.strip()
+                    # Ignora o título principal do TXT pois já está no PDF, e ignora marcadores de imagem
                     if not line or line.startswith("# ") or "![" in line or "[Visualizar" in line:
                         continue
                     
@@ -160,9 +161,9 @@ class ReportGenerator:
         except Exception as e:
             self.logger.error(f"Erro ao plotar rota para {aviary_id}: {e}")
 
-    def _save_markdown(self, path, aviary_id, data, route_info, start_name="Abatedouro"):
+    def _save_text_report(self, path, aviary_id, data, route_info, start_name="Abatedouro"):
         """
-        Saves a markdown file with the route information.
+        Saves a text file with the route information.
         If the file already exists, it updates the "Rota até o aviário" section.
         """
         steps = route_info.get("steps", [])
@@ -198,7 +199,7 @@ class ReportGenerator:
                     # Section doesn't exist, append it
                     content = "".join(lines) + f"\n{new_section}"
             except Exception as e:
-                self.logger.error(f"Erro ao ler markdown existente para {aviary_id}: {e}")
+                self.logger.error(f"Erro ao ler relatório TXT existente para {aviary_id}: {e}")
                 return
         else:
             # Create new content
@@ -216,9 +217,8 @@ class ReportGenerator:
 - **Tempo Estimado (40 km/h):** {data.get('tempo_minutos', 'N/A')} minutos
 
 ## Mapa da Rota
-![Rota](rota.png)
-
-[Visualizar Mapa Interativo](mapa_interativo.html)
+Visualizar imagem: rota_{aviary_id}.png
+Visualizar Mapa Interativo: mapa_{aviary_id}.html
 
 {new_section}"""
 
@@ -226,7 +226,7 @@ class ReportGenerator:
             with open(path, "w", encoding="utf-8") as f:
                 f.write(content)
         except Exception as e:
-            self.logger.error(f"Erro ao salvar markdown para {aviary_id}: {e}")
+            self.logger.error(f"Erro ao salvar relatório TXT para {aviary_id}: {e}")
 
     def _format_distance(self, distance_meters):
         """
