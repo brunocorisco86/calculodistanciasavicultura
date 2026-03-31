@@ -1,24 +1,24 @@
 # Roadmap de Desenvolvimento 🗺️
 
-Planejamento estratégico de longo prazo para a evolução da ferramenta de logística de apanha.
+Planejamento estratégico para a evolução da ferramenta de logística.
 
-## 🟢 Fase 1: Estabilização e UX (Q2-Q3 2026)
-*Foco: Melhorar a experiência do usuário e robustez do código.*
-- [ ] **Interface Gráfica (GUI):** Criar uma versão com interface simples (Streamlit ou PyQt) para usuários que não usam terminal.
-- [ ] **Documentação Dinâmica:** Gerar um site estático (GitHub Pages) com os relatórios consolidados e mapas agregados.
-- [ ] **Tradução de Instruções:** Refinar as frases geradas pelo OSRM para termos técnicos de logística agroindustrial.
+## 🟢 Fase 1: Estabilização e Precisão (Q1-Q2 2026) [EM ANDAMENTO]
+*Foco: Garantir que os cálculos básicos e a infraestrutura local funcionem.*
+- [x] **Motor Local:** Implementação bem-sucedida do Valhalla (Docker).
+- [x] **Sanitização de Dados:** Normalização automática de coordenadas problemáticas.
+- [x] **Customização de Origens:** Suporte a múltiplos pontos de partida configuráveis.
+- [ ] **Interface Streamlit:** Uma interface visual simples para o usuário de negócio.
 
-## 🟡 Fase 2: Roteamento Avançado (Q4 2026 - Q1 2027)
+## 🟡 Fase 2: Roteamento Avançado e Performance (Q3-Q4 2026)
 *Foco: Adicionar camadas de inteligência específicas para transporte pesado.*
-- [ ] **Perfis de Veículos:** Implementar perfis de roteamento específicos para caminhões (Truck profile), considerando alturas de pontes e limites de peso em estradas rurais.
-- [ ] **Múltiplos Destinos (Multi-stop):** Algoritmos para planejar rotas de coleta que passam por vários aviários na mesma viagem (Problema do Caixeiro Viajante).
-- [ ] **Integração com Clima:** Adicionar alertas de rotas críticas em dias de chuva para estradas de terra.
+- [ ] **Paralelismo:** Implementar processamento multiprocessado para redução de tempo.
+- [ ] **Instruções Amigáveis:** Tradução e simplificação das frases de roteamento para vocabulário logístico da cooperativa.
+- [ ] **Integração com Clima:** Alertas automáticos para rotas em estradas de terra em períodos chuvosos.
 
-## 🟠 Fase 3: Integração e Escala (2027+)
-*Foco: Tornar o sistema parte do ecossistema corporativo.*
-- [ ] **API Corporativa (REST):** Transformar o projeto em um microserviço para ser consumido por outros sistemas da cooperativa.
-- [ ] **Dashboard Gerencial:** Visualização agregada de custos logísticos, economia de km e tempos médios de toda a frota.
-- [ ] **Monitoramento em Tempo Real:** Conexão com sistemas de telemetria dos caminhões para comparar o planejado vs executado.
+## 🟠 Fase 3: Escala Corporativa (2027+)
+- [ ] **Microserviço (API):** Transformar o projeto em um serviço central para consumo por outros sistemas (TMS/ERP).
+- [ ] **Monitoramento Real:** Comparação do planejado (Valhalla) vs executado (Telemetria).
 
 ---
 *Este planejamento é dinâmico e pode ser ajustado conforme novas demandas de negócio surgirem.*
+*Desenvolvido com apoio de Valhalla e OpenStreetMap.*

@@ -24,6 +24,11 @@ class ValhallaClient:
                 {"lat": lat_end, "lon": lon_end}
             ],
             "costing": "truck",
+            "costing_options": {
+                "truck": {
+                    "use_ferry": 0
+                }
+            },
             "language": "pt-BR",
             "units": "kilometers"
         }

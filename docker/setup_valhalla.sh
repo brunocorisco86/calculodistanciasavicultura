@@ -17,14 +17,14 @@ chmod -R 777 "${CUSTOM_FILES_DIR}" || true
 log_info "Derrubando stack anterior (se existir)..."
 docker compose -f "${SCRIPT_DIR}/docker-compose.yml" down -v --remove-orphans || true
 
-# Export UID/GID for docker compose
-export UID=$(id -u)
-export GID=$(id -g)
+# Export HOST_UID/HOST_GID for docker compose
+export HOST_UID=$(id -u)
+export HOST_GID=$(id -g)
 
 log_info "Subindo Valhalla (docker-valhalla plug and play)..."
 docker compose -f "${SCRIPT_DIR}/docker-compose.yml" up -d
 
-MAX_WAIT=900
+MAX_WAIT=1800
 ELAPSED=0
 INTERVAL=10
 

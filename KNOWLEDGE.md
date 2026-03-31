@@ -2,73 +2,58 @@
 
 Este documento contém os fundamentos técnicos, decisões de arquitetura e regras de negócio utilizadas no sistema de cálculo de rotas.
 
-## 🏁 Parâmetros Fixos de Origem
+## 🏁 Pontos de Partida Dinâmicos
 
-O ponto de partida para todos os cálculos é o **Abatedouro Central**, cujas coordenadas geográficas são:
-- **Latitude:** `-24.330706`
-- **Longitude:** `-53.858058`
+Diferente de versões anteriores, o sistema agora suporta múltiplas origens configuráveis via `data/ponto_partida.json`. 
+Os pontos cadastrados incluem:
+- **Abatedouro Central**
+- **Fábricas de Ração (1, 2, Agrifirm, Vaccinar)**
+- **Incubatório**
+- **Unidade Assis Chateaubriand**
 
-## 🛤️ Motor de Roteamento (OSRM)
+## 🛤️ Motor de Roteamento: Valhalla
 
-Utilizamos o **OSRM (Open Source Routing Machine)**, um motor de roteamento de alto desempenho baseado em dados do **OpenStreetMap (OSM)**.
+O sistema utiliza o **Valhalla**, um motor de roteamento open-source de alto desempenho rodando localmente via **Docker**.
 
-### Por que OSRM e não Haversine?
-- **Haversine:** Calcula a distância de "vôo de pássaro" (linha reta). Ignora obstáculos, curvas e a malha viária real.
-- **OSRM:** Retorna a trajetória real que um caminhão percorrerá nas estradas. Essencial para logística de precisão, onde a distância real pode ser até 40% maior que a linear em áreas rurais.
+### Por que Valhalla?
+- **Perfis de Carga (Truck):** Diferente de motores genéricos, o Valhalla permite o uso do perfil `truck`, que considera restrições de manobra e velocidades mais realistas para veículos pesados.
+- **Privacidade e Performance:** Rodando em um container local, o processamento de milhares de rotas é extremamente rápido e não depende de limites de APIs externas.
+- **Dados OSM:** Baseado no **OpenStreetMap (OSM)**, garantindo acesso às estradas rurais do Sul do Brasil.
 
-## 📐 Regras de Cálculo
+## 📐 Regras de Cálculo e Normalização
 
-### 0. Formato de Dados de Entrada
-O sistema processa aviários a partir de um arquivo CSV localizado em `data/raw/aviarios.csv`. 
-O cabeçalho e os tipos de dados esperados são:
-- `aviario`: Identificador numérico único (pode incluir sufixos como `EXT`).
-- `nome produtor`: Nome completo do produtor (texto).
-- `latitude`: Coordenada geográfica decimal (ex: `-24.519303`).
-- `longitude`: Coordenada geográfica decimal (ex: `-53.735319`).
-
-Um modelo deste arquivo está disponível em `template/aviarios_template.csv`.
-
-### 1. Distância
-A distância retornada pela API é em metros e convertida para quilômetros (km) com duas casas decimais nos relatórios principais.
+### 1. Normalização Automática de Coordenadas
+Uma das funcionalidades críticas do sistema é o método `_normalize_coordinate`. Ele detecta e corrige erros comuns de formatação em bases legadas:
+- **Erro de Decimal:** Converte `-2434534` para `-24.34534`.
+- **Falsos Floats:** Corrige valores como `-23903.0` para `-23.903`.
+- **Validação de Faixa:** Garante que os valores estejam dentro dos limites globais (-90 a 90 para lat, -180 a 180 para lon).
 
 ### 2. Tempo de Viagem
 O sistema apresenta dois indicadores de tempo:
-- **Tempo OSRM:** Estimativa baseada no perfil de tráfego e limites de velocidade das vias no OSM.
-- **Tempo Operacional (40 km/h):** Calculado com a fórmula:
+- **Tempo Valhalla:** Estimativa baseada no perfil `truck` e na malha viária real.
+- **Tempo Operacional (40 km/h):** Calculado de forma conservadora para alinhar expectativas com a frota pesada em estradas de terra:
   $$Tempo (minutos) = \frac{Distância (km)}{40} \times 60$$
-  *Este parâmetro é utilizado para alinhar as expectativas com a realidade de veículos pesados em estradas rurais.*
 
-## ⚠️ Qualidade dos Dados e Auditoria
+## 📂 Formatos de Saída
 
-A precisão dos cálculos de rota é diretamente dependente da qualidade dos dados de entrada e da malha viária digital.
+Os arquivos são gerados na pasta `docs/rotas_por_aviario/{id}/` com nomes prefixados para fácil identificação:
+- `mapa_{id}.html`: Mapa interativo (Folium/Leaflet).
+- `rota_{id}.png`: Gráfico estático (Matplotlib).
+- `relatorio_{id}.txt`: Documentação técnica em texto puro.
+- `relatorio_{id}.pdf`: Relatório consolidado para impressão (fpdf2).
 
-### 1. Auditoria de Coordenadas
-É **obrigatório** realizar uma auditoria periódica das coordenadas geográficas (latitude/longitude) dos aviários. Coordenadas imprecisas podem resultar em:
-- Pontos de destino localizados em estradas erradas ou inacessíveis.
-- Rotas que não refletem o trajeto real de entrada na propriedade.
-- Distâncias e tempos de viagem subestimados ou superestimados.
+## 🏆 Créditos da Stack Tecnológica
 
-### 2. Auditoria e Edição de Mapas (OpenStreetMap)
-Como o sistema utiliza o **OSRM/OSM**, a atualização constante do mapa da região é vital. Devemos fomentar e manter uma **comunidade de editores de OpenStreetMap** interna ou regional para garantir que:
-- Todas as estradas rurais e acessos estejam devidamente mapeados.
-- A **designação correta de pavimento** (asfalto, terra, cascalho) seja aplicada em cada trecho.
-- O **tipo de estrada** (primária, secundária, serviço) esteja classificado corretamente, influenciando no cálculo de velocidade e tempo operacional.
+O sucesso deste projeto é possível graças ao trabalho das seguintes comunidades e desenvolvedores:
 
-## 📂 Formatos de Saída e Decisões Técnicas
-
-### Relatório PDF (`fpdf2`)
-- **Link Absoluto:** Devido a restrições de segurança de navegadores, o PDF gera links com o prefixo `file://` apontando para o caminho absoluto do mapa interativo na máquina local.
-- **Portabilidade:** Para compartilhar a pasta inteira, o usuário deve garantir que os caminhos absolutos sejam consistentes ou utilizar o mapa HTML diretamente.
-
-### Mapa Interativo (`folium`)
-- Utiliza a biblioteca Folium (wrapper do Leaflet.js).
-- Renderiza a geometria completa da rota (polilinha azul).
-- Marcadores diferenciados para Início (Abatedouro) e Fim (Aviário).
-
-## ⚠️ Limitações e Considerações
-- **Dependência de Internet:** O script requer conexão ativa para consultar o servidor OSRM (`router.project-osrm.org`).
-- **Precisão dos Mapas:** A precisão depende da atualização dos dados do OpenStreetMap na região.
-- **Segurança:** O repositório está configurado para **não rastrear** dados gerados (PDFs/HTMLs), mantendo o foco no código-fonte.
+- **Motor de Roteamento:** [Valhalla](https://github.com/valhalla/valhalla) (desenvolvido originalmente pela Mapzen, mantido pela Tesla e comunidade).
+- **Dockerização Valhalla:** [Nils Nolde](https://github.com/nilsnolde/docker-valhalla) pela excelente implementação plug-and-play.
+- **Dados Geográficos:** Colaboradores do [OpenStreetMap (OSM)](https://www.openstreetmap.org/).
+- **Bibliotecas Python:**
+    - `fpdf2`: Equipe FPDF2 (Max, Lucas Cimon, etc) pela geração de PDFs modernos.
+    - `folium`: Python-visualization por integrar Leaflet.js ao Python.
+    - `polyline`: Peter Chng pela codificação/decodificação eficiente de geometrias.
+    - `matplotlib`: Comunidade Matplotlib pela visualização de dados.
 
 ---
-*Atualizado em 21 de Março de 2026*
+*Atualizado em 26 de Março de 2026*
