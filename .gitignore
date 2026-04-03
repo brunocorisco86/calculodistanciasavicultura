@@ -28,3 +28,6 @@ docs/rotas_por_aviario/
 # OSM / Valhalla
 *.pbf
 custom_files/
+
+# Arquivos processados
+*.zip
