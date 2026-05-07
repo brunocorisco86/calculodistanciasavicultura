@@ -23,13 +23,13 @@ class RoutePDF(FPDF):
         self.cell(0, 10, f"Página {self.page_no()}/{{nb}}", align="C")
 
 class ReportGenerator:
-    def __init__(self, output_dir="docs/rotas_por_aviario", logger=None):
+    def __init__(self, output_dir="docs/rotas_por_estrutura", logger=None):
         self.output_dir = output_dir
         self.logger = logger or setup_logger("ReportGenerator")
         if not os.path.exists(self.output_dir):
             os.makedirs(self.output_dir)
 
-    def generate_aviary_report(self, aviary_id, data, route_info, start_name="Abatedouro"):
+    def generate_structure_report(self, aviary_id, data, route_info, start_name="Abatedouro"):
         """
         Generates a folder for the aviary with a text report, route plot, interactive map and PDF.
         """
@@ -53,14 +53,14 @@ class ReportGenerator:
         pdf_path = os.path.join(aviary_folder, f"relatorio_{aviary_id}.pdf")
         self._generate_pdf(aviary_id, aviary_folder, pdf_path)
 
-        self.logger.info(f"Relatório gerado para aviário {aviary_id} em {aviary_folder}")
+        self.logger.info(f"Relatório gerado para estrutura {aviary_id} em {aviary_folder}")
 
     def _generate_pdf(self, aviary_id, folder_path, output_path):
         """
         Generates a PDF report combining the plot, a link to the interactive map, and the text content.
         """
         try:
-            pdf = RoutePDF(report_title=f"Relatório de Rota - Aviário {aviary_id}")
+            pdf = RoutePDF(report_title=f"Relatório de Rota - Estrutura {aviary_id}")
             pdf.set_auto_page_break(auto=True, margin=15)
             pdf.add_page()
             
@@ -128,7 +128,7 @@ class ReportGenerator:
 
             # Add markers
             folium.Marker(location=points[0], popup=f"Início ({start_name})", icon=folium.Icon(color="green")).add_to(m)
-            folium.Marker(location=points[-1], popup=f"Fim (Aviário {aviary_id})", icon=folium.Icon(color="red")).add_to(m)
+            folium.Marker(location=points[-1], popup=f"Fim (Estrutura {aviary_id})", icon=folium.Icon(color="red")).add_to(m)
 
             # Fit map to bounds
             m.fit_bounds([points[0], points[-1]])
@@ -148,9 +148,9 @@ class ReportGenerator:
             plt.figure(figsize=(10, 6))
             plt.plot(lons, lats, marker='o', markersize=2, linestyle='-', color='blue', label='Rota')
             plt.plot(lons[0], lats[0], 'go', label=f'Início ({start_name})')
-            plt.plot(lons[-1], lats[-1], 'ro', label='Fim (Aviário)')
+            plt.plot(lons[-1], lats[-1], 'ro', label='Fim (Estrutura)')
 
-            plt.title(f"Rota para o Aviário {aviary_id}")
+            plt.title(f"Rota para a Estrutura {aviary_id}")
             plt.xlabel("Longitude")
             plt.ylabel("Latitude")
             plt.legend()
@@ -164,13 +164,13 @@ class ReportGenerator:
     def _save_text_report(self, path, aviary_id, data, route_info, start_name="Abatedouro"):
         """
         Saves a text file with the route information.
-        If the file already exists, it updates the "Rota até o aviário" section.
+        If the file already exists, it updates the "Rota até a estrutura" section.
         """
         steps = route_info.get("steps", [])
         instructions = self._generate_instructions(steps, aviary_id) if steps else ["Rota não disponível."]
         instructions_md = "\n".join(instructions)
 
-        new_section = f"## Rota até o aviário\n{instructions_md}\n"
+        new_section = f"## Rota até a estrutura\n{instructions_md}\n"
 
         if os.path.exists(path):
             try:
@@ -180,7 +180,7 @@ class ReportGenerator:
                 # Find the start of the section
                 start_index = -1
                 for i, line in enumerate(lines):
-                    if line.strip() == "## Rota até o aviário":
+                    if line.strip() == "## Rota até a estrutura":
                         start_index = i
                         break
 
@@ -203,7 +203,7 @@ class ReportGenerator:
                 return
         else:
             # Create new content
-            content = f"""# Relatório de Rota - Aviário {aviary_id}
+            content = f"""# Relatório de Rota - Estrutura {aviary_id}
 
 ## Informações Gerais
 - **Ponto de Partida:** {start_name}
@@ -264,8 +264,8 @@ Visualizar Mapa Interativo: mapa_{aviary_id}.html
             elif i == len(steps) - 1:
                 # Adjust last instruction if necessary
                 if "chegar" in instr.lower() or "destino" in instr.lower():
-                    instr = instr.replace("Seu destino", f"O aviário {aviary_id}")
-                    instr = instr.replace("seu destino", f"o aviário {aviary_id}")
+                    instr = instr.replace("Seu destino", f"A estrutura {aviary_id}")
+                    instr = instr.replace("seu destino", f"a estrutura {aviary_id}")
 
             instructions.append(f"{i+1}. {instr}")
 

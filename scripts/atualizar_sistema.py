@@ -12,7 +12,7 @@ ROOT_DIR = SCRIPT_PATH.parent.parent
 # Configurações relativas à raiz do projeto
 DOCKER_DIR = ROOT_DIR / "docker"
 CUSTOM_FILES_DIR = ROOT_DIR / "custom_files"
-DOCS_DIR = ROOT_DIR / "docs/rotas_por_aviario"
+DOCS_DIR = ROOT_DIR / "docs/rotas_por_estrutura"
 CONTAINER_NAME = "valhalla_cvale"
 
 def log(msg):

@@ -16,7 +16,7 @@ Lista de melhorias técnicas e funcionais priorizadas.
 - [x] **Suporte a Múltiplas Origens:** Implementado menu interativo e cadastro via `data/ponto_partida.json`.
 - [x] **Normalização de Coordenadas:** Desenvolvida lógica para corrigir automaticamente coordenadas sem ponto decimal ou mal formatadas.
 - [x] **Compactação de Relatórios:** Criado utilitário `scripts/zip_reports.py` para exportação rápida.
-- [x] **Prefixação de Arquivos:** Todos os arquivos gerados agora incluem o ID do aviário no nome para facilitar buscas e organização.
+- [x] **Prefixação de Arquivos:** Todos os arquivos gerados agora incluem o ID do estrutura no nome para facilitar buscas e organização.
 
 ---
 *Última atualização: 26 de Março de 2026*

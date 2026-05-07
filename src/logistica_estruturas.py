@@ -9,19 +9,19 @@ from src.report_generator import ReportGenerator
 
 VELOCIDADE_MEDIA_KMH = 40.0
 
-class AviaryProcessor:
+class StructureProcessor:
     def __init__(self, raw_csv_path, processed_csv_path, start_lat, start_lon, start_name="Abatedouro", logger=None):
         self.raw_csv_path = raw_csv_path
         self.processed_csv_path = processed_csv_path
         self.start_lat = start_lat
         self.start_lon = start_lon
         self.start_name = start_name
-        self.logger = logger or setup_logger("AviaryProcessor", log_file="src/utils/processamento.log")
+        self.logger = logger or setup_logger("StructureProcessor", log_file="src/utils/processamento.log")
         self.api_client = ValhallaClient(timeout=30, max_retries=3, logger=self.logger)
         self.report_generator = ReportGenerator(logger=self.logger)
 
     def run(self):
-        self.logger.info(f"Iniciando processamento de aviários saindo de: {self.start_name}...")
+        self.logger.info(f"Iniciando processamento de estruturas saindo de: {self.start_name}...")
         resultados = []
 
         try:
@@ -39,7 +39,7 @@ class AviaryProcessor:
                         if processed_row:
                             resultados.append(processed_row)
                     except Exception as e:
-                        self.logger.error(f"Erro ao processar linha {row.get('aviario')}: {e}")
+                        self.logger.error(f"Erro ao processar linha {row.get('estrutura')}: {e}")
 
             self._save_results(resultados)
             self.logger.info(f"Processamento concluído. {len(resultados)} registros processados.")
@@ -88,14 +88,14 @@ class AviaryProcessor:
             return None
 
     def _process_row(self, row):
-        aviario = row['aviario'].strip()
+        estrutura = row['estrutura'].strip()
         nome = row['nome produtor'].strip()
 
         lat = self._normalize_coordinate(row.get('latitude'))
         lon = self._normalize_coordinate(row.get('longitude'))
 
         if lat is None or lon is None:
-            self.logger.warning(f"Coordenadas inválidas para aviário {aviario}: Lat={row.get('latitude')}, Lon={row.get('longitude')}")
+            self.logger.warning(f"Coordenadas inválidas para estrutura {estrutura}: Lat={row.get('latitude')}, Lon={row.get('longitude')}")
             return None
 
         route_info = self.api_client.get_route(self.start_lat, self.start_lon, lat, lon)
@@ -109,14 +109,14 @@ class AviaryProcessor:
             row['tempo_minutos'] = round(tempo_minutos, 1)
             row['ponto_partida'] = self.start_name
             
-            self.logger.info(f"Aviário: {aviario:<10} | Produtor: {nome[:20]:<20} | Dist.: {distancia_km:>8.2f} km | Tempo: {tempo_minutos:>6.1f} min")
+            self.logger.info(f"Estrutura: {estrutura:<10} | Produtor: {nome[:20]:<20} | Dist.: {distancia_km:>8.2f} km | Tempo: {tempo_minutos:>6.1f} min")
             
             # Gerar relatório individual
-            self.report_generator.generate_aviary_report(aviario, row, route_info, start_name=self.start_name)
+            self.report_generator.generate_structure_report(estrutura, row, route_info, start_name=self.start_name)
 
             return row
         else:
-            self.logger.error(f"Não foi possível calcular a rota para o aviário {aviario}")
+            self.logger.error(f"Não foi possível calcular a rota para a estrutura {estrutura}")
             return None
 
     def _save_results(self, resultados):
@@ -136,7 +136,7 @@ class AviaryProcessor:
         except Exception as e:
             self.logger.error(f"Erro ao salvar CSV processado: {e}")
 
-def processar_aviarios(csv_path, start_lat, start_lon, start_name="Abatedouro"):
+def processar_estruturas(csv_path, start_lat, start_lon, start_name="Abatedouro"):
     # Validação de segurança do caminho do arquivo (Prevenção de Path Traversal)
     try:
         base_dir = os.path.realpath(os.path.dirname(os.path.dirname(__file__)))
@@ -152,12 +152,12 @@ def processar_aviarios(csv_path, start_lat, start_lon, start_name="Abatedouro"):
     print(f"{'='*60}")
     print(f"{'LOGÍSTICA DE APANHA - AVÍCOLA':^60}")
     print(f"{'='*60}")
-    print(f"{'Aviário':<10} | {'Produtor':<20} | {'Dist. (km)':<12} | {'Tempo (min)':<10}")
+    print(f"{'Estrutura':<10} | {'Produtor':<20} | {'Dist. (km)':<12} | {'Tempo (min)':<10}")
     print(f"{'-'*60}")
 
-    processor = AviaryProcessor(
+    processor = StructureProcessor(
         raw_csv_path=target_path,
-        processed_csv_path="data/processed/aviarios_processados.csv",
+        processed_csv_path="data/processed/estruturas_processados.csv",
         start_lat=start_lat,
         start_lon=start_lon,
         start_name=start_name
@@ -172,8 +172,8 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         csv_input = sys.argv[1]
     else:
-        # Resolve o caminho para ../data/raw/aviarios.csv relativo ao script de forma absoluta
+        # Resolve o caminho para ../data/raw/estruturas.csv relativo ao script de forma absoluta
         base_path = Path(__file__).resolve().parent
-        csv_input = base_path.parent / "data" / "raw" / "aviarios.csv"
+        csv_input = base_path.parent / "data" / "raw" / "estruturas.csv"
 
-    processar_aviarios(str(csv_input), DEFAULT_LAT, DEFAULT_LON)
+    processar_estruturas(str(csv_input), DEFAULT_LAT, DEFAULT_LON)

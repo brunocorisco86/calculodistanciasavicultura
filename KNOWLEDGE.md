@@ -36,7 +36,7 @@ O sistema apresenta dois indicadores de tempo:
 
 ## 📂 Formatos de Saída
 
-Os arquivos são gerados na pasta `docs/rotas_por_aviario/{id}/` com nomes prefixados para fácil identificação:
+Os arquivos são gerados na pasta `docs/rotas_por_estrutura/{id}/` com nomes prefixados para fácil identificação:
 - `mapa_{id}.html`: Mapa interativo (Folium/Leaflet).
 - `rota_{id}.png`: Gráfico estático (Matplotlib).
 - `relatorio_{id}.txt`: Documentação técnica em texto puro.

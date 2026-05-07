@@ -3,7 +3,7 @@ from unittest.mock import patch, MagicMock
 import requests
 from src.api_client import ValhallaClient
 
-class TestLogisticaAviarios(unittest.TestCase):
+class TestLogisticaEstruturas(unittest.TestCase):
 
     @patch('src.api_client.requests.post')
     def test_get_route_success(self, mock_post):

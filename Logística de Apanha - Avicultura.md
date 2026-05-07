@@ -1,6 +1,6 @@
 # Logística de Apanha - Avicultura
 
-Este script Python foi desenvolvido para calcular a distância real (via estradas) e o tempo de viagem entre o abatedouro central e diversos aviários.
+Este script Python foi desenvolvido para calcular a distância real (via estradas) e o tempo de viagem entre o abatedouro central e diversos estruturas.
 
 ## Configurações
 - **Ponto de Partida (Abatedouro):** `-24.330706428602536, -53.85805796419288`
@@ -15,13 +15,13 @@ pip install requests
 
 ## Como Usar
 1. Prepare seu arquivo `.csv` seguindo o modelo:
-   | aviario | nome produtor | latitude | longitude |
+   | estrutura | nome produtor | latitude | longitude |
    |---------|---------------|----------|-----------|
    | 140     | jose da silva | -24.0    | -53.0     |
 
 2. Execute o script passando o caminho do seu CSV:
 ```bash
-python logistica_aviarios.py aviarios.csv
+python logistica_estruturas.py estruturas.csv
 ```
 
 ## Funcionamento

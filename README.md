@@ -1,6 +1,6 @@
 # Logística de Apanha - Avicultura 🚛🐔
 
-Sistema inteligente para otimização logística na avicultura, focado no cálculo de rotas reais, distâncias precisas e tempos de viagem entre pontos centrais e aviários.
+Sistema inteligente para otimização logística na avicultura, focado no cálculo de rotas reais, distâncias precisas e tempos de viagem entre pontos centrais e estruturas.
 
 ## 📌 Visão Geral
 
@@ -11,7 +11,7 @@ Este projeto utiliza o motor de roteamento **Valhalla** (rodando localmente em D
 - **Motor Valhalla (Perfil Truck):** Cálculo de rota real considerando restrições de manobra e tráfego pesado.
 - **Normalização Automática:** Corrige erros de coordenadas (ex: `-2434534` para `-24.34534`) durante o processamento.
 - **Multiorigem Dinâmica:** Permite escolher entre Abatedouros, Fábricas de Ração, Incubatórios ou Unidades de Apoio através de um menu interativo e configuração via JSON (`data/ponto_partida.json`).
-- **Relatórios Personalizados:** Cada aviário recebe:
+- **Relatórios Personalizados:** Cada estrutura recebe:
   - 📄 **PDF Consolidado:** Gerado com `fpdf2` contendo gráficos e roteiros.
   - 🗺️ **Mapa Interativo (HTML):** Gerado com `folium` (Leaflet).
   - 📝 **Relatório TXT:** Documento de texto contendo as manobras e orientações.
@@ -46,7 +46,7 @@ chmod +x docker/setup_valhalla.sh
 ## 📁 Estrutura do Projeto
 
 - `data/ponto_partida.json`: Cadastro de pontos centrais da cooperativa.
-- `docs/rotas_por_aviario/`: Local onde todos os arquivos individuais são salvos.
+- `docs/rotas_por_estrutura/`: Local onde todos os arquivos individuais são salvos.
 - `scripts/zip_reports.py`: Utilitário para compactar mapas e relatórios TXT para distribuição.
 
 ## 🏆 Créditos e Tecnologias

@@ -20,18 +20,16 @@ class RoutePDF(FPDF):
         self.cell(0, 10, f"Página {self.page_no()}/{{nb}}", align="C")
 
 def generate_pdf_from_folder(aviary_id, folder_path):
-    pdf = RoutePDF(report_title=f"Relatório de Rota - Aviário {aviary_id}")
+    pdf = RoutePDF(report_title=f"Relatório de Rota - Estrutura {aviary_id}")
     pdf.set_auto_page_break(auto=True, margin=15)
     pdf.add_page()
     
     # Caminho absoluto para o HTML (mais compatível para uso local)
-    html_abs_path = os.path.abspath(os.path.join(folder_path, "mapa_interativo.html"))
-    # No Windows, file:// precisa de barras extras, no Linux file:// basta. 
-    # Usaremos file:// seguido do caminho.
+    html_abs_path = os.path.abspath(os.path.join(folder_path, f"mapa_{aviary_id}.html"))
     link_url = f"file://{html_abs_path}"
 
-    # 1. Inserir o Plot (rota.png)
-    plot_path = os.path.join(folder_path, "rota.png")
+    # 1. Inserir o Plot (rota_{aviary_id}.png)
+    plot_path = os.path.join(folder_path, f"rota_{aviary_id}.png")
     if os.path.exists(plot_path):
         pdf.image(plot_path, x=10, y=None, w=190)
         pdf.ln(5)
@@ -39,14 +37,14 @@ def generate_pdf_from_folder(aviary_id, folder_path):
     # 2. Hyperlink para o Mapa Interativo
     pdf.set_font("helvetica", "U", 12)
     pdf.set_text_color(0, 0, 255)
-    pdf.cell(0, 10, "Clique aqui para abrir o Mapa Interativo HTML", align="C", link=link_url, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+    pdf.cell(0, 10, f"Clique aqui para abrir o Mapa Interativo ({aviary_id})", align="C", link=link_url, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
     pdf.set_text_color(0, 0, 0)
     pdf.ln(5)
 
-    # 3. Conteúdo do relatorio.md
-    md_path = os.path.join(folder_path, "relatorio.md")
-    if os.path.exists(md_path):
-        with open(md_path, "r", encoding="utf-8") as f:
+    # 3. Conteúdo do relatorio_{aviary_id}.txt
+    txt_path = os.path.join(folder_path, f"relatorio_{aviary_id}.txt")
+    if os.path.exists(txt_path):
+        with open(txt_path, "r", encoding="utf-8") as f:
             lines = f.readlines()
         
         for line in lines:
@@ -73,7 +71,7 @@ def generate_pdf_from_folder(aviary_id, folder_path):
     return pdf_output
 
 def main():
-    base_dir = "docs/rotas_por_aviario"
+    base_dir = "docs/rotas_por_estrutura"
     if not os.path.exists(base_dir):
         print(f"Diretório {base_dir} não encontrado.")
         return

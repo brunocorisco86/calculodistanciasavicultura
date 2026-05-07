@@ -3,7 +3,7 @@ import zipfile
 from datetime import datetime
 
 def zip_aviary_reports():
-    base_dir = "docs/rotas_por_aviario"
+    base_dir = "docs/rotas_por_estrutura"
     output_dir = "docs"
     
     # Nome do arquivo com timestamp para evitar sobrescrita se desejar, 
@@ -19,7 +19,7 @@ def zip_aviary_reports():
     count_files = 0
     try:
         with zipfile.ZipFile(zip_filename, 'w', zipfile.ZIP_DEFLATED) as zipf:
-            # Percorre todas as pastas de aviarios
+            # Percorre todas as pastas de estruturas
             for root, dirs, files in os.walk(base_dir):
                 for file in files:
                     # Filtra apenas mapas (html) e relatorios (txt)

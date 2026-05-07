@@ -23,7 +23,7 @@ data/processed/
 npm-debug.log*
 
 # Docs
-docs/rotas_por_aviario/
+docs/rotas_por_estrutura/
 
 # OSM / Valhalla
 *.pbf
